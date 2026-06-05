@@ -1,0 +1,1547 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>PVAO Pensioner Management System</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#eef2f7;--sur:#fff;--sur2:#f4f6f9;--brd:#dde3ec;
+  --txt:#1a202c;--mut:#64748b;--acc:#1a365d;--ac2:#2563eb;--acl:#eff6ff;
+  --grn:#16a34a;--red:#dc2626;--org:#d97706;--pur:#7c3aed;--teal:#0d9488
+}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--txt);font-size:13px;min-height:100vh}
+.hidden{display:none!important}
+input,select,textarea{font-family:inherit;font-size:13px;padding:8px 11px;border:1.5px solid var(--brd);border-radius:7px;width:100%;background:var(--sur);color:var(--txt);outline:none;transition:all .15s}
+input:focus,select:focus,textarea:focus{border-color:var(--ac2);box-shadow:0 0 0 3px rgba(37,99,235,.1)}
+input:disabled,textarea:disabled,select:disabled{background:#f1f5f9;color:#94a3b8;cursor:not-allowed}
+button{font-family:inherit;font-size:13px;padding:8px 16px;border-radius:7px;cursor:pointer;border:none;transition:all .15s;font-weight:600;letter-spacing:.01em}
+button:disabled{opacity:.5;cursor:not-allowed!important}
+.bp{background:var(--ac2);color:#fff}.bp:hover:not(:disabled){background:#1d4ed8}
+.bs{background:var(--sur);color:var(--txt);border:1.5px solid var(--brd)}.bs:hover:not(:disabled){background:var(--sur2)}
+.bg{background:var(--grn);color:#fff}.bg:hover:not(:disabled){background:#15803d}
+.br{background:var(--red);color:#fff}.br:hover:not(:disabled){background:#b91c1c}
+.bo{background:var(--org);color:#fff}.bo:hover:not(:disabled){background:#b45309}
+.bdk{background:var(--acc);color:#fff}.bdk:hover:not(:disabled){background:#153059}
+.bsm{padding:5px 11px;font-size:12px}
+label{font-size:11px;font-weight:700;color:var(--mut);display:block;margin-bottom:5px;text-transform:uppercase;letter-spacing:.5px}
+.card{background:var(--sur);border:1.5px solid var(--brd);border-radius:12px;box-shadow:0 1px 4px rgba(0,0,0,.05)}
+.badge{display:inline-flex;align-items:center;padding:2px 9px;border-radius:20px;font-size:11px;font-weight:700}
+.bb{background:#dbeafe;color:#1d4ed8}.bgg{background:#dcfce7;color:#15803d}
+.bo2{background:#fef3c7;color:#92400e}.bp2{background:#ede9fe;color:#6d28d9}
+.bt{background:#ccfbf1;color:#0f766e}.br2{background:#fee2e2;color:#b91c1c}
+.by2{background:#fef9c3;color:#854d0e}
+.sep{border:none;border-top:1.5px solid var(--brd);margin:16px 0}
+.ab2{display:flex;gap:8px;margin-bottom:14px;align-items:center;flex-wrap:wrap}
+.sp{flex:1}
+.chip{display:inline-flex;padding:3px 10px;background:var(--acl);color:var(--ac2);border-radius:20px;font-size:11px;font-weight:700}
+.tabs{display:flex;border-bottom:2px solid var(--brd);margin-bottom:18px}
+.tab{padding:8px 18px;cursor:pointer;font-size:13px;color:var(--mut);border-bottom:2px solid transparent;margin-bottom:-2px;font-weight:600}
+.tab.on{color:var(--ac2);border-bottom-color:var(--ac2)}
+.al{padding:10px 14px;border-radius:8px;font-size:12px;margin-bottom:12px;line-height:1.5}
+.al-s{background:#f0fdf4;border:1.5px solid #86efac;color:#15803d}
+.al-e{background:#fef2f2;border:1.5px solid #fca5a5;color:#dc2626}
+.al-i{background:#eff6ff;border:1.5px solid #93c5fd;color:#1d4ed8}
+.al-w{background:#fffbeb;border:1.5px solid #fcd34d;color:#92400e}
+.chk-lbl{display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;font-weight:500}
+.chk-lbl input[type=checkbox]{width:16px;height:16px;cursor:pointer;accent-color:var(--ac2)}
+.fg{display:grid;grid-template-columns:1fr 1fr;gap:13px}
+.fg3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:13px}
+.fg4{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:13px}
+.ff{grid-column:1/-1}
+.spin{display:inline-block;width:13px;height:13px;border:2px solid rgba(255,255,255,.35);border-top-color:currentColor;border-radius:50%;animation:sp .6s linear infinite;vertical-align:middle;margin-right:5px}
+.spin-d{border:2px solid rgba(0,0,0,.1);border-top-color:var(--ac2)}
+@keyframes sp{to{transform:rotate(360deg)}}
+/* STATUS TOAST */
+#toast{position:fixed;bottom:20px;right:20px;padding:10px 16px;border-radius:9px;font-size:12px;font-weight:600;color:#fff;z-index:9999;max-width:340px;box-shadow:0 4px 16px rgba(0,0,0,.25);transition:opacity .3s;pointer-events:none;display:none}
+/* LOGIN */
+#ls{min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(145deg,#0f2044 0%,#1e40af 100%)}
+.lbox{background:var(--sur);border-radius:16px;padding:38px;width:420px;box-shadow:0 24px 60px rgba(0,0,0,.4)}
+.lbox h2{font-size:19px;font-weight:800;color:#1a365d;text-align:center;margin-bottom:3px}
+.lsub{font-size:11px;color:var(--mut);text-align:center;margin-bottom:22px}
+.lerr{background:#fef2f2;border:1.5px solid #fca5a5;border-radius:7px;padding:9px 12px;font-size:12px;color:var(--red);margin-bottom:10px}
+.lok{background:#f0fdf4;border:1.5px solid #86efac;border-radius:7px;padding:9px 12px;font-size:12px;color:var(--grn);margin-bottom:10px}
+.ltabs{display:flex;border-bottom:2px solid var(--brd);margin-bottom:18px}
+.ltab{padding:8px 18px;cursor:pointer;font-size:13px;color:var(--mut);border-bottom:2px solid transparent;margin-bottom:-2px;font-weight:600;transition:all .15s}
+.ltab.on{color:var(--ac2);border-bottom-color:var(--ac2)}
+/* SETUP */
+#setup{min-height:100vh;display:flex;align-items:flex-start;justify-content:center;padding:30px 20px;background:linear-gradient(145deg,#0f2044 0%,#1e40af 100%)}
+.setup-box{background:var(--sur);border-radius:16px;padding:36px;width:580px;max-width:100%;box-shadow:0 24px 60px rgba(0,0,0,.4)}
+/* APP */
+#app{display:flex;height:100vh}
+#sb{width:218px;background:#0f2044;display:flex;flex-direction:column;flex-shrink:0}
+.sbh{padding:16px;border-bottom:1px solid rgba(255,255,255,.1)}
+.sbh h3{font-size:11px;font-weight:800;color:#fff;letter-spacing:1px;text-transform:uppercase}
+.sbh p{font-size:10px;color:rgba(255,255,255,.4);margin-top:2px}
+.ni{display:flex;align-items:center;gap:10px;padding:10px 16px;cursor:pointer;font-size:13px;color:rgba(255,255,255,.6);border-left:3px solid transparent;transition:all .15s;user-select:none}
+.ni:hover{background:rgba(255,255,255,.07);color:#fff}
+.ni.on{background:rgba(37,99,235,.25);color:#fff;border-left-color:#60a5fa}
+.ni .ico{width:20px;text-align:center;font-size:15px}
+.sbf{margin-top:auto;padding:14px 16px;border-top:1px solid rgba(255,255,255,.1)}
+.ava{width:32px;height:32px;background:#2563eb;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:#fff;flex-shrink:0}
+#main{flex:1;overflow-y:auto;background:var(--bg)}
+.ph{padding:20px 26px 0;margin-bottom:16px}
+.ph h2{font-size:20px;font-weight:800;color:var(--acc)}
+.ph p{font-size:12px;color:var(--mut);margin-top:4px}
+.pc{padding:0 26px 28px}
+.sg{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:16px}
+.sc{padding:16px 20px}.sc .v{font-size:28px;font-weight:800;color:var(--ac2);line-height:1.2}.sc .l{font-size:11px;color:var(--mut);margin-top:3px;font-weight:600}
+/* TABLE */
+.dt{width:100%;border-collapse:collapse;font-size:12px}
+.dt th{background:var(--sur2);padding:9px 11px;text-align:left;font-size:10px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:.5px;border-bottom:1.5px solid var(--brd);white-space:nowrap}
+.dt td{padding:9px 11px;border-bottom:1px solid var(--brd);vertical-align:middle;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dt tr:last-child td{border-bottom:none}
+.dt tr:hover td{background:#f8fafc}
+/* MODAL */
+.mo{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:900;display:flex;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto;backdrop-filter:blur(2px)}
+.md{background:var(--sur);border-radius:14px;width:860px;max-width:98vw;margin:auto}
+.mh{padding:16px 22px;border-bottom:1.5px solid var(--brd);display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;background:var(--sur);z-index:1;border-radius:14px 14px 0 0}
+.mh h3{font-size:15px;font-weight:800}
+.mb{padding:22px}
+.mf{padding:14px 22px;border-top:1.5px solid var(--brd);display:flex;gap:8px;justify-content:flex-end;border-radius:0 0 14px 14px}
+/* MEMO */
+.memo-wrap{background:#fff;border:1px solid #ccc;font-family:'Times New Roman',serif;font-size:13px;line-height:1.7;color:#000}
+.memo-hspace{height:80px;border-bottom:1px dashed #ccc;display:flex;align-items:center;justify-content:center}
+.memo-hspace span,.memo-fspace span{font-size:10px;color:#ccc;font-family:sans-serif}
+.memo-fspace{height:55px;border-top:1px dashed #ccc;display:flex;align-items:center;justify-content:center;margin-top:6px}
+.memo-body{padding:14px 32px}
+.memo-tbl{width:100%;border-collapse:collapse;margin:10px 0;font-size:12px}
+.memo-tbl th{border:1px solid #000;padding:5px 8px;background:#f0f0f0;text-align:center;font-weight:bold}
+.memo-tbl td{border:1px solid #000;padding:5px 8px}
+.sig-line{border-top:1px solid #000;padding-top:3px;font-weight:bold;font-size:11px;text-transform:uppercase;margin-top:30px}
+.sig-sub{font-size:10px;font-style:italic}
+/* STEP CARDS */
+.scard{background:var(--sur);border:1.5px solid var(--brd);border-radius:10px;margin-bottom:8px;overflow:hidden}
+.shdr{display:flex;align-items:center;gap:12px;padding:12px 16px;cursor:pointer;user-select:none}
+.shdr:hover{background:var(--sur2)}
+.snum{width:26px;height:26px;background:#1a365d;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#fff;flex-shrink:0}
+.shdr h4{font-size:13px;font-weight:700;flex:1;margin:0}
+.sbody{padding:0 16px 16px 54px;font-size:13px;line-height:1.7}
+.sbody p{margin-bottom:8px}.sbody code{background:#f1f5f9;color:#1a365d;padding:2px 7px;border-radius:4px;font-size:12px;font-family:monospace}
+.sbody pre{background:#0f172a;color:#e2e8f0;padding:14px;border-radius:8px;font-size:11px;font-family:monospace;overflow-x:auto;margin:8px 0;line-height:1.6;white-space:pre-wrap;word-break:break-all}
+.sbody ul{margin:4px 0 8px 16px}.sbody li{margin-bottom:4px}
+.sbody .note{background:#fffbeb;border:1.5px solid #fcd34d;border-radius:7px;padding:9px 12px;font-size:12px;color:#92400e;margin:8px 0}
+.sbody .ok{background:#f0fdf4;border:1.5px solid #86efac;border-radius:7px;padding:9px 12px;font-size:12px;color:#15803d;margin:8px 0}
+.chev{font-size:14px;color:var(--mut);transition:transform .2s;display:inline-block}
+.chev.open{transform:rotate(180deg)}
+/* PEN LIST */
+.pen-item{display:flex;align-items:center;gap:10px;padding:10px 14px;border-bottom:1px solid var(--brd);cursor:pointer;transition:background .1s}
+.pen-item:hover{background:var(--sur2)}
+.pen-item.sel{background:#eff6ff}
+.pen-item:last-child{border-bottom:none}
+/* PAGE BADGE */
+.pg-info{font-size:11px;color:var(--mut);margin-top:6px;padding:5px 10px;background:var(--sur2);border-radius:6px;display:inline-block}
+</style>
+</head>
+<body>
+<div id="toast"></div>
+
+<!-- ═══ SETUP ═══ -->
+<div id="setup" class="hidden">
+<div class="setup-box">
+  <div style="text-align:center;margin-bottom:20px">
+    <div style="width:52px;height:52px;background:#1a365d;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 12px">
+      <svg width="24" height="24" fill="none" stroke="#fff" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2L4 6v6c0 4.5 3.5 8.7 8 10 4.5-1.3 8-5.5 8-10V6z"/></svg>
+    </div>
+    <h2 style="font-size:19px;font-weight:800;color:#1a365d">First-Time Setup</h2>
+    <p style="font-size:12px;color:var(--mut);margin-top:4px">Connect to Google Sheets to enable multi-user shared database</p>
+  </div>
+  <div id="su-err" class="lerr hidden"></div>
+  <div id="su-ok" class="lok hidden"></div>
+  <div style="margin-bottom:14px">
+    <label>Google Apps Script Web App URL *</label>
+    <input id="su-url" type="url" placeholder="https://script.google.com/macros/s/AKfyc.../exec"/>
+    <p style="font-size:11px;color:var(--mut);margin-top:5px">Deploy the Apps Script first (see instructions below), then paste the URL here.</p>
+  </div>
+  <button class="bdk" style="width:100%;padding:10px;font-size:14px;margin-bottom:18px" id="su-btn" onclick="doSetup()">Connect &amp; Continue →</button>
+  <hr class="sep"/>
+  <p style="font-size:11px;font-weight:700;color:var(--mut);margin-bottom:10px;text-transform:uppercase;letter-spacing:.5px">Apps Script Setup Instructions</p>
+  <div id="setup-guide"></div>
+</div>
+</div>
+
+<!-- ═══ LOGIN ═══ -->
+<div id="ls">
+<div class="lbox">
+  <div style="text-align:center;margin-bottom:16px">
+    <div style="width:52px;height:52px;background:#1a365d;border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 12px">
+      <svg width="24" height="24" fill="none" stroke="#fff" stroke-width="2" viewBox="0 0 24 24"><path d="M12 2L4 6v6c0 4.5 3.5 8.7 8 10 4.5-1.3 8-5.5 8-10V6z"/></svg>
+    </div>
+    <h2>PVAO Pensioner System</h2>
+    <p class="lsub">Philippine Veterans Affairs Office — VRMD</p>
+  </div>
+  <div class="ltabs">
+    <div class="ltab on" onclick="ltab('in',this)">Sign In</div>
+    <div class="ltab" onclick="ltab('reg',this)">Register</div>
+  </div>
+  <div id="lt-in">
+    <div id="l-err" class="lerr hidden"></div>
+    <div style="margin-bottom:11px"><label>Username</label><input id="l-u" type="text" placeholder="Username" autocomplete="off"/></div>
+    <div style="margin-bottom:16px"><label>Password</label><input id="l-p" type="password" placeholder="Password"/></div>
+    <button class="bdk" style="width:100%;padding:10px" id="l-btn" onclick="doLogin()">Sign In</button>
+  </div>
+  <div id="lt-reg" class="hidden">
+    <div id="r-err" class="lerr hidden"></div>
+    <div id="r-ok" class="lok hidden"></div>
+    <div class="fg" style="margin-bottom:11px">
+      <div><label>First Name *</label><input id="r-fn" placeholder="Juan"/></div>
+      <div><label>Last Name *</label><input id="r-ln" placeholder="Dela Cruz"/></div>
+    </div>
+    <div style="margin-bottom:11px"><label>Username *</label><input id="r-u" placeholder="jdelacruz" autocomplete="off"/></div>
+    <div style="margin-bottom:11px"><label>Password * <span style="font-weight:400;text-transform:none">(min 6)</span></label><input id="r-p" type="password" placeholder="Password"/></div>
+    <div style="margin-bottom:11px"><label>Position / Designation</label><input id="r-pos" placeholder="Encoder/Evaluator"/></div>
+    <div style="margin-bottom:14px"><label>Role *</label>
+      <select id="r-role"><option value="encoder">Encoder</option><option value="viewer">Viewer</option><option value="admin">Admin</option></select>
+    </div>
+    <div class="al al-w" style="margin-bottom:12px;font-size:12px">New accounts need admin approval before login.</div>
+    <button class="bdk" style="width:100%;padding:10px" id="r-btn" onclick="doRegister()">Submit Registration</button>
+  </div>
+  <div style="text-align:center;margin-top:12px">
+    <button class="bs bsm" onclick="showSetup()" style="font-size:11px;color:var(--mut)">⚙ Change API URL</button>
+  </div>
+</div>
+</div>
+
+<!-- ═══ APP ═══ -->
+<div id="app" class="hidden">
+<div id="sb">
+  <div class="sbh"><h3>PVAO System</h3><p id="sb-role">—</p></div>
+  <nav style="padding:8px 0" id="sb-nav">
+    <div class="ni on" data-p="dash"    onclick="nav('dash',this)"><span class="ico">⊞</span>Dashboard</div>
+    <div class="ni"    data-p="encode"  onclick="nav('encode',this)" id="n-enc"><span class="ico">✎</span>Encode Pensioner</div>
+    <div class="ni"    data-p="records" onclick="nav('records',this)"><span class="ico">☰</span>Records</div>
+    <div class="ni"    data-p="memos"   onclick="nav('memos',this)" id="n-mem"><span class="ico">📋</span>Generate Memo</div>
+    <div class="ni"    data-p="search"  onclick="nav('search',this)"><span class="ico">⌕</span>Search</div>
+    <div class="ni"    data-p="users"   onclick="nav('users',this)" id="n-usr"><span class="ico">👥</span>Users</div>
+    <div class="ni"    data-p="guide"   onclick="nav('guide',this)"><span class="ico">📖</span>Setup Guide</div>
+  </nav>
+  <div class="sbf">
+    <div style="display:flex;align-items:center;gap:9px">
+      <div class="ava" id="sb-av">?</div>
+      <div><p id="sb-un" style="font-size:12px;color:#fff;font-weight:700">—</p><span id="sb-rl" style="font-size:10px;color:rgba(255,255,255,.45)">—</span></div>
+    </div>
+    <button class="bs bsm" style="width:100%;margin-top:10px" onclick="doLogout()">Sign Out</button>
+  </div>
+</div>
+
+<div id="main">
+
+<!-- DASHBOARD -->
+<div id="p-dash">
+  <div class="ph"><h2>Dashboard</h2><p id="dg">Welcome</p></div>
+  <div class="pc">
+    <div id="dash-al" class="al al-i" style="display:flex;align-items:center;gap:9px"><span class="spin spin-d"></span>Loading...</div>
+    <div class="sg" id="stat-row">
+      <div class="card sc"><div class="v" id="st0">—</div><div class="l">Pensioners</div></div>
+      <div class="card sc"><div class="v" id="st1" style="color:var(--grn)">—</div><div class="l">Total Memos</div></div>
+      <div class="card sc"><div class="v" id="st2" style="color:var(--org)">—</div><div class="l">Lifting</div></div>
+      <div class="card sc"><div class="v" id="st3" style="color:var(--pur)">—</div><div class="l">Resumption</div></div>
+    </div>
+    <div class="card" style="padding:20px">
+      <h3 style="font-size:13px;font-weight:700;margin-bottom:12px;color:var(--acc)">Recent Memos</h3>
+      <div id="dash-recent"><p style="color:var(--mut)">Loading...</p></div>
+    </div>
+  </div>
+</div>
+
+<!-- ENCODE PENSIONER -->
+<div id="p-encode" class="hidden">
+  <div class="ph"><h2>Encode Pensioner</h2><p>Saved directly to Google Sheets</p></div>
+  <div class="pc"><div class="card" style="padding:24px">
+    <div id="enc-al" class="hidden"></div>
+    <div class="fg" style="margin-bottom:13px">
+      <div><label>Claim Number *</label><input id="e-cl" placeholder="OV-F05-21-000049"/></div>
+      <div><label>Last Name *</label><input id="e-ln" placeholder="DELA CRUZ"/></div>
+      <div><label>First Name *</label><input id="e-fn" placeholder="JUAN"/></div>
+      <div><label>Middle Initial</label><input id="e-mi" placeholder="S." maxlength="5"/></div>
+    </div>
+    <div class="fg" style="margin-bottom:13px">
+      <div><label>Contact Number *</label><input id="e-cn" placeholder="09XX-XXX-XXXX"/></div>
+      <div><label>Email Address</label><input id="e-em" type="email" placeholder="juan@email.com"/></div>
+    </div>
+    <div style="margin-bottom:13px"><label>Permanent / Last Known Address *</label><textarea id="e-ad" rows="2" placeholder="House No., Street, Barangay, City/Municipality, Province"></textarea></div>
+    <div style="margin-bottom:16px"><label>Present Address <span style="font-weight:400;text-transform:none">(if different from permanent)</span></label><textarea id="e-pa" rows="2" placeholder="Leave blank if same as permanent"></textarea></div>
+    <div style="display:flex;gap:10px;align-items:center">
+      <button class="bdk" id="enc-btn" onclick="savePensioner()">💾 Save to Sheets</button>
+      <button class="bs" onclick="clearEnc()">Clear Form</button>
+    </div>
+  </div></div>
+</div>
+
+<!-- RECORDS -->
+<div id="p-records" class="hidden">
+  <div class="ph"><h2>Pensioner Records</h2><p>Live data from Google Sheets</p></div>
+  <div class="pc">
+    <div class="ab2">
+      <input id="rec-q" style="width:260px" placeholder="Search by name or claim no..." oninput="filterRec()"/>
+      <span class="sp"></span>
+      <button class="bg bsm" onclick="loadPensioners(true)">↻ Refresh</button>
+      <span class="chip" id="rec-cnt">—</span>
+    </div>
+    <div id="rec-al" class="hidden" style="margin-bottom:10px"></div>
+    <div class="card" style="overflow:auto">
+      <table class="dt">
+        <thead><tr>
+          <th style="width:130px">Claim No.</th>
+          <th style="width:180px">Name</th>
+          <th style="width:110px">Contact</th>
+          <th style="width:190px">Address</th>
+          <th style="width:95px">Encoded By</th>
+          <th style="width:110px">Actions</th>
+        </tr></thead>
+        <tbody id="rec-tb"><tr><td colspan="6" style="text-align:center;padding:22px;color:var(--mut)"><span class="spin spin-d"></span> Loading...</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- GENERATE MEMO -->
+<div id="p-memos" class="hidden">
+  <div class="ph"><h2>Generate Memo</h2><p>Select any number of pensioners — printed 5 per page, numbered continuously</p></div>
+  <div class="pc">
+    <div class="tabs">
+      <div class="tab on" onclick="rtab('new',this)">New Memo</div>
+      <div class="tab" onclick="rtab('list',this)">Memo List</div>
+    </div>
+
+    <!-- NEW MEMO -->
+    <div id="rt-new">
+      <div class="card" style="padding:22px;margin-bottom:14px">
+        <h3 style="font-size:13px;font-weight:700;color:var(--acc);margin-bottom:14px">Memo Configuration</h3>
+        <div id="rpt-al" class="hidden"></div>
+        <div class="fg4" style="margin-bottom:14px">
+          <div><label>Memo Type *</label>
+            <select id="rp-typ" onchange="onTypeChange()">
+              <option value="">-- Type --</option>
+              <option value="LIF">Lifting</option>
+              <option value="RES">Resumption</option>
+            </select>
+          </div>
+          <div><label>Subject *</label>
+            <select id="rp-sub" onchange="genCtrl()">
+              <option value="">-- Subject --</option>
+            </select>
+          </div>
+          <div><label>Mode of Validation *</label>
+            <select id="rp-mod" onchange="genCtrl()">
+              <option value="">-- Mode --</option>
+              <option value="BIO">Biometrics (BIO)</option>
+              <option value="OI">On-site Inspection (OI)</option>
+              <option value="EMAIL">Email Validation (EMAIL)</option>
+              <option value="PROMINENT">Prominent Person (PROMINENT)</option>
+              <option value="VFP">VFP Certification (VFP)</option>
+            </select>
+          </div>
+          <div><label>Memo Control (auto)</label>
+            <input id="rp-mc" readonly style="background:var(--sur2);font-weight:700;color:var(--ac2)" placeholder="Auto-generated..."/>
+          </div>
+        </div>
+      </div>
+
+      <!-- PENSIONER SELECTION — unlimited -->
+      <div class="card" style="padding:22px;margin-bottom:14px">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+          <div>
+            <h3 style="font-size:13px;font-weight:700;color:var(--acc)">Select Pensioners</h3>
+            <p style="font-size:11px;color:var(--mut);margin-top:3px">Select any number — memo prints 5 per page, numbered continuously</p>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px">
+            <span class="chip" id="sel-cnt">0 selected</span>
+            <button class="bs bsm" onclick="loadPensioners(false);renderPenList()">↻</button>
+          </div>
+        </div>
+        <div class="ab2" style="margin-bottom:10px">
+          <input id="pen-q" style="width:240px" placeholder="Filter pensioners..." oninput="renderPenList()"/>
+          <button class="bs bsm" onclick="clearSel()">Clear Selection</button>
+        </div>
+        <div id="pen-list" style="max-height:260px;overflow-y:auto;border:1.5px solid var(--brd);border-radius:8px">
+          <p style="padding:16px;color:var(--mut);text-align:center">Loading pensioners...</p>
+        </div>
+        <div id="sel-preview" class="hidden" style="margin-top:10px">
+          <p style="font-size:11px;font-weight:700;color:var(--mut);margin-bottom:6px;text-transform:uppercase;letter-spacing:.4px">Selected Pensioners</p>
+          <div id="sel-chips" style="display:flex;flex-wrap:wrap;gap:6px"></div>
+          <p class="pg-info" id="pg-info"></p>
+        </div>
+      </div>
+
+      <!-- CHANGE OF ADDRESS -->
+      <div class="card" style="padding:22px;margin-bottom:14px">
+        <h4 style="font-size:11px;font-weight:700;color:var(--mut);margin-bottom:12px;text-transform:uppercase;letter-spacing:.5px">Change of Address</h4>
+        <div style="margin-bottom:10px">
+          <label class="chk-lbl"><input type="checkbox" id="chk-addr" onchange="toggleAddr()"/> With change of address</label>
+        </div>
+        <div id="addr-fields" class="hidden">
+          <div style="margin-bottom:11px"><label>Pensioner with new address</label>
+            <select id="rp-apen"><option value="">-- Select pensioner --</option></select>
+          </div>
+          <div><label>New / Updated Address</label>
+            <textarea id="rp-newaddr" rows="2" placeholder="Encode new address here..."></textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- SIGNATORIES -->
+      <div class="card" style="padding:22px;margin-bottom:14px">
+        <h4 style="font-size:11px;font-weight:700;color:var(--mut);margin-bottom:14px;text-transform:uppercase;letter-spacing:.5px">Signatories</h4>
+        <div class="fg3" style="margin-bottom:14px">
+          <div><label>Prepared By</label><input id="rp-prep" readonly style="background:var(--sur2)"/></div>
+          <div><label>Position</label><input id="rp-ppos" readonly style="background:var(--sur2)"/></div>
+          <div></div>
+          <div><label>Recommend Approval — Name *</label><input id="rp-rec" placeholder="LIZA T. DELA CRUZ"/></div>
+          <div><label>Position *</label><input id="rp-rpos" placeholder="CHIEF, VRMD"/></div>
+          <div></div>
+          <div><label>Approved By — Title</label><input id="rp-attl" placeholder="ASSISTANT SECRETARY"/></div>
+          <div><label>Name *</label><input id="rp-apv" placeholder="DOMINGO C. CARBONELL, JR."/></div>
+          <div><label>Designation *</label><input id="rp-apos" placeholder="Deputy Administrator for Operations"/></div>
+        </div>
+        <div style="display:flex;gap:10px">
+          <button class="bdk" id="rpt-btn" onclick="genReport()">📋 Generate &amp; Save Memo</button>
+          <button class="bs" onclick="clearRpt()">Clear</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MEMO LIST -->
+    <div id="rt-list" class="hidden">
+      <div class="ab2">
+        <input id="ml-q" style="width:200px" placeholder="Search memo or name..." oninput="filterMemos()"/>
+        <select id="ml-ft" style="width:120px" onchange="filterMemos()"><option value="">All Types</option><option value="LIF">Lifting</option><option value="RES">Resumption</option></select>
+        <select id="ml-fm" style="width:120px" onchange="filterMemos()"><option value="">All Modes</option><option value="BIO">BIO</option><option value="OI">OI</option><option value="EMAIL">EMAIL</option><option value="PROMINENT">PROMINENT</option><option value="VFP">VFP</option></select>
+        <span class="sp"></span>
+        <button class="bg bsm" onclick="loadMemos(true)">↻ Refresh</button>
+        <span class="chip" id="ml-cnt">—</span>
+      </div>
+      <div id="ml-al" class="hidden" style="margin-bottom:10px"></div>
+      <div class="card" style="overflow:auto">
+        <table class="dt">
+          <thead><tr>
+            <th style="width:160px">Memo Control</th>
+            <th style="width:75px">Type</th>
+            <th style="width:85px">Mode</th>
+            <th style="width:60px">Claims</th>
+            <th style="width:95px">Date</th>
+            <th style="width:80px">By</th>
+            <th style="width:120px">Actions</th>
+          </tr></thead>
+          <tbody id="ml-tb"><tr><td colspan="7" style="text-align:center;padding:22px;color:var(--mut)"><span class="spin spin-d"></span> Loading...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SEARCH -->
+<div id="p-search" class="hidden">
+  <div class="ph"><h2>Search</h2><p>Search memos and pensioners across all records in Google Sheets</p></div>
+  <div class="pc">
+    <div class="card" style="padding:20px;margin-bottom:14px">
+      <div style="display:flex;gap:8px">
+        <input id="sq" placeholder="Enter memo control, pensioner name, or claim number..."/>
+        <button class="bdk" id="s-btn" onclick="doSearch()">Search</button>
+      </div>
+    </div>
+    <div id="s-res"></div>
+  </div>
+</div>
+
+<!-- USERS -->
+<div id="p-users" class="hidden">
+  <div class="ph"><h2>User Management</h2><p>All accounts stored in Google Sheets — changes take effect immediately for all users</p></div>
+  <div class="pc">
+    <div id="usr-al" class="hidden" style="margin-bottom:12px"></div>
+    <div class="card" style="overflow:auto;margin-bottom:16px">
+      <table class="dt">
+        <thead><tr><th>Username</th><th>Name</th><th>Role</th><th>Position</th><th>Status</th><th style="width:160px">Actions</th></tr></thead>
+        <tbody id="usr-tb"><tr><td colspan="6" style="text-align:center;padding:22px;color:var(--mut)"><span class="spin spin-d"></span> Loading...</td></tr></tbody>
+      </table>
+    </div>
+    <div class="card" style="padding:22px">
+      <h3 style="font-size:13px;font-weight:700;color:var(--acc);margin-bottom:14px">➕ Add New User</h3>
+      <div id="au-al" class="hidden"></div>
+      <div class="fg" style="margin-bottom:12px">
+        <div><label>First Name *</label><input id="nu-fn" placeholder="Juan"/></div>
+        <div><label>Last Name *</label><input id="nu-ln" placeholder="Dela Cruz"/></div>
+        <div><label>Username *</label><input id="nu-u" placeholder="jdelacruz"/></div>
+        <div><label>Password *</label><input id="nu-p" type="password" placeholder="Min 6 characters"/></div>
+        <div><label>Position / Designation</label><input id="nu-pos" placeholder="Encoder/Evaluator"/></div>
+        <div><label>Role *</label><select id="nu-role"><option value="encoder">Encoder</option><option value="viewer">Viewer</option><option value="admin">Admin</option></select></div>
+      </div>
+      <button class="bdk" id="au-btn" onclick="addUser()">Add User</button>
+    </div>
+  </div>
+</div>
+
+<!-- SETUP GUIDE -->
+<div id="p-guide" class="hidden">
+  <div class="ph"><h2>Setup Guide</h2><p>Deployment and Google Sheets integration steps</p></div>
+  <div class="pc" id="guide-body"></div>
+</div>
+
+</div><!-- /main -->
+</div><!-- /app -->
+
+<!-- ═══ MODALS ═══ -->
+<div id="m-view" class="mo hidden"><div class="md">
+  <div class="mh"><h3>Pensioner Details</h3><button class="bs bsm" onclick="cm('m-view')">✕</button></div>
+  <div class="mb" id="m-view-b"></div>
+  <div class="mf" id="m-view-f"></div>
+</div></div>
+
+<div id="m-edit" class="mo hidden"><div class="md">
+  <div class="mh"><h3>Edit Pensioner</h3><button class="bs bsm" onclick="cm('m-edit')">✕</button></div>
+  <div class="mb" id="m-edit-b"></div>
+  <div class="mf">
+    <button class="bs" onclick="cm('m-edit')">Cancel</button>
+    <button class="bdk" id="m-edit-btn" onclick="saveEdit()">💾 Save Changes</button>
+  </div>
+</div></div>
+
+<div id="m-memo" class="mo hidden"><div class="md" style="width:900px">
+  <div class="mh">
+    <h3 id="m-mt">Memo Preview</h3>
+    <div style="display:flex;gap:7px">
+      <button class="bg bsm" onclick="expPDF()">↓ Export PDF</button>
+      <button class="bs bsm" onclick="printMemo()">🖨 Print</button>
+      <button class="bs bsm" onclick="cm('m-memo')">✕</button>
+    </div>
+  </div>
+  <div class="mb">
+    <div id="m-ew" class="hidden" style="margin-bottom:16px">
+      <div class="al al-i">Edit the memo body text below, then click Apply.</div>
+      <textarea id="m-eb" rows="7" style="font-family:'Times New Roman',serif;font-size:13px;line-height:1.7"></textarea>
+      <button class="bs bsm" style="margin-top:7px" onclick="applyEdit()">Apply Changes</button>
+    </div>
+    <div id="m-prev"></div>
+  </div>
+  <div class="mf">
+    <button class="bs bsm" onclick="toggleEdit()">✏ Edit Body</button>
+    <button class="bdk bsm" onclick="expPDF()">↓ Export PDF</button>
+  </div>
+</div></div>
+
+<script>
+/* ============================================================
+   CONSTANTS
+   ============================================================ */
+const SUBTYPES = {
+  LIF: ['LIFTING OF BLOCKED PENSION DUE TO NON-COMPLIANCE',
+        'LIFTING OF SUSPENDED PENSION DUE TO NON-COMPLIANCE'],
+  RES: ['RESUMPTION OF BLOCKED PENSION DUE TO NON-COMPLIANCE',
+        'RESUMPTION OF TERMINATED PENSION DUE TO NON-COMPLIANCE']
+};
+const CLAIMS_PER_PAGE = 5;
+
+/* ============================================================
+   STATE
+   ============================================================ */
+let API_URL = localStorage.getItem('pvao_api') || '';
+let CU = null;          // current user
+let PENS = [];          // all pensioners (cache)
+let MEMOS = [];         // all memos (cache)
+let USERS = [];         // all users (cache)
+let SEL = [];           // selected pensioner claim nos for current memo
+let CR = null;          // current memo in modal
+let EDIT_PEN = null;    // pensioner being edited
+
+/* ============================================================
+   API LAYER — retry + error handling
+   ============================================================ */
+async function api(payload, retries = 3) {
+  if (!API_URL) throw new Error('No API URL. Please configure in setup.');
+  let lastErr;
+  for (let i = 0; i <= retries; i++) {
+    try {
+      const res = await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain' },
+        body: JSON.stringify(payload)
+      });
+      const text = await res.text();
+      let data;
+      try { data = JSON.parse(text); }
+      catch(e) {
+        // Extract JSON from HTML error wrapper
+        const m = text.match(/\{[\s\S]*\}/);
+        if (m) data = JSON.parse(m[0]);
+        else throw new Error('Server returned non-JSON: ' + text.substring(0,120));
+      }
+      if (data.error) throw new Error(data.error);
+      return data;
+    } catch(e) {
+      lastErr = e;
+      if (i < retries) await new Promise(r => setTimeout(r, 600 * (i + 1)));
+    }
+  }
+  throw lastErr;
+}
+
+/* ============================================================
+   TOAST / STATUS
+   ============================================================ */
+let _toastTimer;
+function toast(msg, type = 'info', dur = 3500) {
+  const el = document.getElementById('toast');
+  const colors = { info:'#2563eb', success:'#16a34a', error:'#dc2626', warn:'#d97706' };
+  el.style.background = colors[type] || '#374151';
+  el.textContent = msg;
+  el.style.display = 'block';
+  el.style.opacity = '1';
+  clearTimeout(_toastTimer);
+  if (dur > 0) _toastTimer = setTimeout(() => { el.style.opacity = '0'; setTimeout(()=>el.style.display='none', 300); }, dur);
+}
+
+/* ============================================================
+   SETUP
+   ============================================================ */
+function showSetup() {
+  document.getElementById('ls').classList.add('hidden');
+  document.getElementById('app').classList.add('hidden');
+  document.getElementById('setup').classList.remove('hidden');
+  document.getElementById('su-url').value = API_URL;
+  buildGuide('setup-guide');
+}
+
+async function doSetup() {
+  const url = document.getElementById('su-url').value.trim();
+  const err = document.getElementById('su-err');
+  const ok  = document.getElementById('su-ok');
+  const btn = document.getElementById('su-btn');
+  err.classList.add('hidden'); ok.classList.add('hidden');
+  if (!url) { err.textContent = 'Please enter the Apps Script URL.'; err.classList.remove('hidden'); return; }
+  btn.disabled = true; btn.innerHTML = '<span class="spin"></span>Connecting...';
+  API_URL = url;
+  try {
+    await api({ action: 'ping' });
+    localStorage.setItem('pvao_api', url);
+    ok.textContent = '✓ Connected! Redirecting to login...';
+    ok.classList.remove('hidden');
+    setTimeout(() => {
+      document.getElementById('setup').classList.add('hidden');
+      document.getElementById('ls').classList.remove('hidden');
+    }, 1400);
+  } catch(e) {
+    err.textContent = 'Connection failed: ' + e.message;
+    err.classList.remove('hidden');
+    API_URL = localStorage.getItem('pvao_api') || '';
+  }
+  btn.disabled = false; btn.innerHTML = 'Connect &amp; Continue →';
+}
+
+/* ============================================================
+   AUTH
+   ============================================================ */
+function ltab(t, el) {
+  document.getElementById('lt-in').classList.toggle('hidden', t !== 'in');
+  document.getElementById('lt-reg').classList.toggle('hidden', t !== 'reg');
+  document.querySelectorAll('.ltab').forEach(x => x.classList.remove('on'));
+  el.classList.add('on');
+}
+
+async function doLogin() {
+  const u = gv('l-u').toLowerCase(), p = gv('l-p');
+  const err = document.getElementById('l-err');
+  const btn = document.getElementById('l-btn');
+  err.classList.add('hidden');
+  if (!u || !p) { err.textContent = 'Enter username and password.'; err.classList.remove('hidden'); return; }
+  btn.disabled = true; btn.innerHTML = '<span class="spin"></span>Signing in...';
+  try {
+    const d = await api({ action: 'login', username: u, password: p });
+    if (!d.ok) throw new Error(d.msg || 'Login failed.');
+    CU = d.user;
+    document.getElementById('ls').classList.add('hidden');
+    document.getElementById('app').classList.remove('hidden');
+    initApp();
+  } catch(e) { err.textContent = e.message; err.classList.remove('hidden'); }
+  btn.disabled = false; btn.innerHTML = 'Sign In';
+}
+document.getElementById('l-p').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
+document.getElementById('l-u').addEventListener('keydown', e => { if(e.key==='Enter') document.getElementById('l-p').focus(); });
+
+async function doRegister() {
+  const fn=gv('r-fn'),ln=gv('r-ln'),u=gv('r-u').toLowerCase(),p=gv('r-p');
+  const pos=gv('r-pos'), role=gv('r-role')||'encoder';
+  const err=document.getElementById('r-err'), ok=document.getElementById('r-ok');
+  const btn=document.getElementById('r-btn');
+  err.classList.add('hidden'); ok.classList.add('hidden');
+  if (!fn||!ln||!u||!p) { err.textContent='Fill all required fields.'; err.classList.remove('hidden'); return; }
+  if (p.length<6) { err.textContent='Password must be at least 6 characters.'; err.classList.remove('hidden'); return; }
+  if (!/^[a-z0-9_]+$/.test(u)) { err.textContent='Username: letters, numbers, underscore only.'; err.classList.remove('hidden'); return; }
+  btn.disabled=true; btn.innerHTML='<span class="spin"></span>Submitting...';
+  try {
+    const d = await api({ action:'registerUser', fname:fn, lname:ln, username:u, password:p, pos:pos||'Encoder/Evaluator', role, status:'pending' });
+    if (!d.ok) throw new Error(d.msg || 'Registration failed.');
+    ok.textContent = '✓ Registration submitted! An admin will approve your account.';
+    ok.classList.remove('hidden');
+    ['r-fn','r-ln','r-u','r-p','r-pos'].forEach(id => document.getElementById(id).value='');
+  } catch(e) { err.textContent = e.message; err.classList.remove('hidden'); }
+  btn.disabled=false; btn.innerHTML='Submit Registration';
+}
+
+function doLogout() {
+  CU=null; PENS=[]; MEMOS=[]; USERS=[]; SEL=[];
+  document.getElementById('app').classList.add('hidden');
+  document.getElementById('ls').classList.remove('hidden');
+  document.getElementById('l-u').value=''; document.getElementById('l-p').value='';
+}
+
+/* ============================================================
+   INIT & NAV
+   ============================================================ */
+function initApp() {
+  document.getElementById('sb-un').textContent = CU.username;
+  document.getElementById('sb-rl').textContent = CU.role;
+  document.getElementById('sb-role').textContent = CU.role + ' access';
+  document.getElementById('sb-av').textContent = (CU.fname[0]+CU.lname[0]).toUpperCase();
+  document.getElementById('dg').textContent = 'Welcome back, ' + CU.fname + '!';
+  document.getElementById('rp-prep').value = (CU.fname+' '+CU.lname).toUpperCase();
+  document.getElementById('rp-ppos').value = (CU.pos||'').toUpperCase();
+  if (CU.role === 'viewer') { document.getElementById('n-enc').classList.add('hidden'); document.getElementById('n-mem').classList.add('hidden'); }
+  if (CU.role !== 'admin') document.getElementById('n-usr').classList.add('hidden');
+  nav('dash');
+  buildGuide('guide-body');
+}
+
+const ALL_PAGES = ['dash','encode','records','memos','search','users','guide'];
+function nav(p, el) {
+  ALL_PAGES.forEach(x => document.getElementById('p-'+x).classList.add('hidden'));
+  document.getElementById('p-'+p).classList.remove('hidden');
+  document.querySelectorAll('.ni').forEach(n => n.classList.remove('on'));
+  (el || document.querySelector(`[data-p="${p}"]`))?.classList.add('on');
+  if (p==='dash')    loadDashboard();
+  if (p==='records') loadPensioners(false);
+  if (p==='memos')   { loadPensioners(false); if(document.querySelector('#rt-list:not(.hidden)')) loadMemos(false); }
+  if (p==='users')   loadUsers();
+}
+
+/* ============================================================
+   DASHBOARD
+   ============================================================ */
+async function loadDashboard() {
+  const al = document.getElementById('dash-al');
+  showAl(al, 'al-i', '<span class="spin spin-d"></span> Loading dashboard...');
+  try {
+    const d = await api({ action: 'getDashboard' });
+    ['st0','st1','st2','st3'].forEach((id,i) => {
+      document.getElementById(id).textContent = [d.penCount,d.memoCount,d.liftingCount,d.resumptionCount][i]||0;
+    });
+    const rl = document.getElementById('dash-recent');
+    const recent = (d.recentMemos||[]).slice(0,6);
+    rl.innerHTML = recent.length ? recent.map(r=>`
+      <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--brd)">
+        <span class="badge ${r.typ==='LIF'?'bo2':'bp2'}">${r.typ}</span>
+        <div style="flex:1;min-width:0">
+          <p style="font-weight:700;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.mc}</p>
+          <p style="font-size:11px;color:var(--mut)">${r.pnames||''} · ${r.mod}</p>
+        </div>
+        <span style="font-size:11px;color:var(--mut);white-space:nowrap">${(r.dstr||'').split(' ').slice(0,2).join(' ')}</span>
+      </div>`).join('')
+      : '<p style="color:var(--mut)">No memos yet.</p>';
+    al.classList.add('hidden');
+  } catch(e) { showAl(al,'al-e','Failed to load dashboard: '+e.message); }
+}
+
+/* ============================================================
+   PENSIONERS — encode & records
+   ============================================================ */
+async function loadPensioners(showMsg) {
+  if (showMsg) toast('Loading pensioners...','info',0);
+  try {
+    const d = await api({ action: 'getPensioners' });
+    PENS = d.pensioners || [];
+    renderRec(); renderPenList();
+    if (showMsg) toast('Loaded '+PENS.length+' pensioners','success');
+  } catch(e) {
+    toast('Failed to load pensioners: '+e.message,'error');
+    showAl(document.getElementById('rec-al'),'al-e','Load failed: '+e.message);
+  }
+}
+
+async function savePensioner() {
+  const cl=gv('e-cl'),ln=gv('e-ln'),fn=gv('e-fn'),mi=gv('e-mi'),cn=gv('e-cn'),ad=gv('e-ad'),pa=gv('e-pa'),em=gv('e-em');
+  const al = document.getElementById('enc-al');
+  const btn = document.getElementById('enc-btn');
+  if (!cl||!ln||!fn||!ad||!cn) { showAl(al,'al-e','Required fields missing: Claim No., Last Name, First Name, Address, Contact.'); return; }
+  btn.disabled=true; btn.innerHTML='<span class="spin spin-d"></span>Saving...';
+  showAl(al,'al-i','Saving to Google Sheets...');
+  try {
+    const pen = { cl, ln, fn, mi, cn, ad, pa, em, by:CU.username, at:new Date().toISOString() };
+    const d = await api({ action:'savePensioner', pensioner:pen });
+    if (!d.ok) throw new Error(d.msg||'Save failed.');
+    const idx = PENS.findIndex(p=>p.cl===cl);
+    if (idx>=0) PENS[idx]=pen; else PENS.push(pen);
+    showAl(al,'al-s','✓ Saved! Record is live in Google Sheets.');
+    clearEnc(); renderPenList();
+    toast('Pensioner saved','success');
+  } catch(e) { showAl(al,'al-e','Save failed: '+e.message); toast('Save failed','error'); }
+  btn.disabled=false; btn.innerHTML='💾 Save to Sheets';
+}
+
+function clearEnc() { ['e-cl','e-ln','e-fn','e-mi','e-cn','e-ad','e-pa','e-em'].forEach(id=>document.getElementById(id).value=''); }
+
+function renderRec() {
+  const q = (gv('rec-q')||'').toLowerCase();
+  const f = PENS.filter(p=>!q||p.cl.toLowerCase().includes(q)||p.ln.toLowerCase().includes(q)||p.fn.toLowerCase().includes(q));
+  document.getElementById('rec-cnt').textContent = f.length+' records';
+  const tb = document.getElementById('rec-tb');
+  if (!f.length) { tb.innerHTML='<tr><td colspan="6" style="text-align:center;padding:22px;color:var(--mut)">No records found</td></tr>'; return; }
+  tb.innerHTML = f.map(p=>`<tr>
+    <td><span class="badge bb">${esc(p.cl)}</span></td>
+    <td><b>${esc(p.ln)}</b>, ${esc(p.fn)} ${esc(p.mi||'')}</td>
+    <td>${esc(p.cn||'—')}</td>
+    <td title="${esc(p.ad||'')}">${esc((p.ad||'—').substring(0,28))}${(p.ad||'').length>28?'…':''}</td>
+    <td style="color:var(--mut)">${esc(p.by||'')}</td>
+    <td>
+      <button class="bs bsm" onclick="viewP('${esc2(p.cl)}')">View</button>
+      ${CU.role!=='viewer'?`<button class="bs bsm" onclick="editP('${esc2(p.cl)}')" style="margin-left:3px">Edit</button>`:''}
+    </td>
+  </tr>`).join('');
+}
+function filterRec() { renderRec(); }
+
+function viewP(cl) {
+  const p = PENS.find(x=>x.cl===cl); if(!p) return;
+  document.getElementById('m-view-b').innerHTML=`
+    <div class="fg" style="gap:13px">
+      ${fd('Claim No.',p.cl)} ${fd('Encoded By',p.by)}
+      ${fd('Last Name',p.ln)} ${fd('First Name',p.fn)}
+      ${fd('Middle Initial',p.mi||'—')} ${fd('Contact',p.cn||'—')}
+      <div class="ff">${fd('Permanent Address',p.ad||'—')}</div>
+      <div class="ff">${fd('Present Address',p.pa||'—')}</div>
+      <div class="ff">${fd('Email',p.em||'—')}</div>
+    </div>`;
+  document.getElementById('m-view-f').innerHTML=`
+    ${CU.role!=='viewer'?`<button class="bdk bsm" onclick="cm('m-view');editP('${esc2(p.cl)}')">Edit</button>`:''}
+    <button class="bs" onclick="cm('m-view')">Close</button>`;
+  om('m-view');
+}
+
+function editP(cl) {
+  EDIT_PEN = PENS.find(x=>x.cl===cl); if(!EDIT_PEN) return;
+  const p = EDIT_PEN;
+  document.getElementById('m-edit-b').innerHTML=`
+    <div class="fg" style="margin-bottom:12px">
+      <div><label>Claim No. (read-only)</label><input value="${esc(p.cl)}" readonly style="background:var(--sur2)"/></div>
+      <div><label>Last Name</label><input id="ep-ln" value="${esc(p.ln)}"/></div>
+      <div><label>First Name</label><input id="ep-fn" value="${esc(p.fn)}"/></div>
+      <div><label>Middle Initial</label><input id="ep-mi" value="${esc(p.mi||'')}"/></div>
+    </div>
+    <div class="fg" style="margin-bottom:12px">
+      <div><label>Contact</label><input id="ep-cn" value="${esc(p.cn||'')}"/></div>
+      <div><label>Email</label><input id="ep-em" value="${esc(p.em||'')}"/></div>
+    </div>
+    <div style="margin-bottom:12px"><label>Permanent Address</label><textarea id="ep-ad" rows="2">${esc(p.ad)}</textarea></div>
+    <div style="margin-bottom:12px"><label>Present Address</label><textarea id="ep-pa" rows="2">${esc(p.pa||'')}</textarea></div>
+    <div id="ep-al" class="hidden"></div>`;
+  om('m-edit');
+}
+
+async function saveEdit() {
+  const p = EDIT_PEN; if(!p) return;
+  const btn = document.getElementById('m-edit-btn');
+  const al  = document.getElementById('ep-al');
+  p.ln=gv('ep-ln')||p.ln; p.fn=gv('ep-fn')||p.fn; p.mi=gv('ep-mi');
+  p.cn=gv('ep-cn'); p.em=gv('ep-em'); p.ad=gv('ep-ad')||p.ad; p.pa=gv('ep-pa');
+  btn.disabled=true; btn.innerHTML='<span class="spin spin-d"></span>Saving...';
+  try {
+    const d = await api({ action:'savePensioner', pensioner:p });
+    if (!d.ok) throw new Error(d.msg||'Save failed.');
+    const idx=PENS.findIndex(x=>x.cl===p.cl); if(idx>=0) PENS[idx]=p;
+    renderRec(); cm('m-edit'); toast('Pensioner updated','success');
+  } catch(e) { showAl(al,'al-e','Save failed: '+e.message); }
+  btn.disabled=false; btn.innerHTML='💾 Save Changes';
+}
+
+/* ============================================================
+   PENSIONER SELECTION (unlimited)
+   ============================================================ */
+function renderPenList() {
+  const q = (gv('pen-q')||'').toLowerCase();
+  const f = PENS.filter(p=>!q||p.cl.toLowerCase().includes(q)||p.ln.toLowerCase().includes(q)||p.fn.toLowerCase().includes(q));
+  const c = document.getElementById('pen-list');
+  if (!f.length) { c.innerHTML='<p style="padding:16px;color:var(--mut);text-align:center">No pensioners found</p>'; return; }
+  c.innerHTML = f.map(p=>{
+    const sel = SEL.includes(p.cl);
+    return`<div class="pen-item ${sel?'sel':''}" onclick="togglePen('${esc2(p.cl)}')">
+      <input type="checkbox" ${sel?'checked':''} style="width:15px;height:15px;accent-color:var(--ac2);pointer-events:none;flex-shrink:0"/>
+      <div style="flex:1;min-width:0">
+        <p style="font-weight:600;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(p.ln)}, ${esc(p.fn)} ${esc(p.mi||'')}</p>
+        <p style="font-size:11px;color:var(--mut)">${esc(p.cl)} · ${esc(p.cn||'N/A')}</p>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function togglePen(cl) {
+  const idx = SEL.indexOf(cl);
+  if (idx>=0) SEL.splice(idx,1); else SEL.push(cl);
+  renderPenList(); updateSelPanel(); fillAddrDD();
+}
+
+function clearSel() { SEL=[]; renderPenList(); updateSelPanel(); fillAddrDD(); }
+
+function updateSelPanel() {
+  document.getElementById('sel-cnt').textContent = SEL.length+' selected';
+  const prev = document.getElementById('sel-preview');
+  if (!SEL.length) { prev.classList.add('hidden'); return; }
+  prev.classList.remove('hidden');
+  document.getElementById('sel-chips').innerHTML = SEL.map(cl=>{
+    const p = PENS.find(x=>x.cl===cl);
+    return p ? `<span style="display:inline-flex;align-items:center;gap:5px;background:#dbeafe;color:#1d4ed8;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:600">
+      ${esc(p.ln)}, ${esc(p.fn)} ${esc(p.mi||'')}
+      <span onclick="togglePen('${esc2(cl)}')" style="cursor:pointer;font-weight:700;color:#1d4ed8">✕</span>
+    </span>` : '';
+  }).join('');
+  const pages = Math.ceil(SEL.length / CLAIMS_PER_PAGE);
+  document.getElementById('pg-info').textContent =
+    `${SEL.length} claim${SEL.length!==1?'s':''} → ${pages} memo page${pages!==1?'s':''}` +
+    ` (${CLAIMS_PER_PAGE} per page, numbered continuously)`;
+}
+
+function fillAddrDD() {
+  const s = document.getElementById('rp-apen');
+  s.innerHTML='<option value="">-- Select pensioner --</option>';
+  SEL.forEach(cl=>{
+    const p=PENS.find(x=>x.cl===cl); if(!p)return;
+    const o=document.createElement('option'); o.value=cl; o.textContent=p.ln+', '+p.fn+(p.mi?' '+p.mi:''); s.appendChild(o);
+  });
+}
+
+function toggleAddr() {
+  document.getElementById('addr-fields').classList.toggle('hidden',!document.getElementById('chk-addr').checked);
+}
+
+/* ============================================================
+   MEMO — generate, list, paginate
+   ============================================================ */
+function onTypeChange() {
+  const t = gv('rp-typ');
+  const ss = document.getElementById('rp-sub');
+  ss.innerHTML='<option value="">-- Subject --</option>';
+  if (t && SUBTYPES[t]) SUBTYPES[t].forEach(s=>{ const o=document.createElement('option');o.value=s;o.textContent=s;ss.appendChild(o); });
+  genCtrl();
+}
+
+function genCtrl() {
+  const t=gv('rp-typ'), m=gv('rp-mod');
+  if (!t||!m||!CU) { document.getElementById('rp-mc').value=''; return; }
+  const fi=CU.fname[0].toUpperCase(), li=CU.lname[0].toUpperCase();
+  const now=new Date();
+  const yy=String(now.getFullYear()).slice(-2);
+  const mm=String(now.getMonth()+1).padStart(2,'0');
+  const seq = MEMOS.filter(r=>r.typ===t&&r.mod===m).length + 1;
+  document.getElementById('rp-mc').value = `${t}-${m}-${fi}${li}-${yy}${mm}-${String(seq).padStart(4,'0')}`;
+}
+
+async function genReport() {
+  const typ=gv('rp-typ'), sub=gv('rp-sub'), mod=gv('rp-mod');
+  const rec=gv('rp-rec'), rpos=gv('rp-rpos');
+  const apv=gv('rp-apv'), apos=gv('rp-apos'), attl=gv('rp-attl');
+  const al=document.getElementById('rpt-al');
+  const btn=document.getElementById('rpt-btn');
+  al.classList.add('hidden');
+  if (!typ||!sub||!mod) { showAl(al,'al-e','Select memo type, subject, and mode.'); return; }
+  if (!SEL.length)       { showAl(al,'al-e','Select at least one pensioner.'); return; }
+  if (!rec||!rpos)       { showAl(al,'al-e','Fill Recommend Approval name and position.'); return; }
+  if (!apv||!apos)       { showAl(al,'al-e','Fill Approved By name and designation.'); return; }
+  btn.disabled=true; btn.innerHTML='<span class="spin spin-d"></span>Saving...';
+  const mc   = gv('rp-mc');
+  const now  = new Date();
+  const dstr = now.toLocaleDateString('en-PH',{day:'2-digit',month:'long',year:'numeric'}).toUpperCase();
+  const selPens = SEL.map(cl=>PENS.find(x=>x.cl===cl)).filter(Boolean);
+  const chkAddr = document.getElementById('chk-addr').checked;
+  const memo = {
+    id: Date.now(), mc, typ, sub, mod,
+    selCls: [...SEL],
+    pensioners: JSON.parse(JSON.stringify(selPens)),
+    pnames: selPens.map(p=>`${p.ln}, ${p.fn} ${p.mi||''}`).join(' | '),
+    addrChange: chkAddr,
+    addrPenCl: gv('rp-apen'),
+    newAddr: chkAddr ? gv('rp-newaddr') : '',
+    prep: (CU.fname+' '+CU.lname).toUpperCase(),
+    preppos: (CU.pos||'').toUpperCase(),
+    rec: rec.toUpperCase(), recpos: rpos.toUpperCase(),
+    apv: apv.toUpperCase(), apvpos: apos.toUpperCase(), apvttl: attl.toUpperCase(),
+    dstr, diso: now.toISOString(), by: CU.username
+  };
+  try {
+    const d = await api({ action:'saveMemo', memo });
+    if (!d.ok) throw new Error(d.msg||'Save failed.');
+    MEMOS.push(memo);
+    showMemoModal(memo);
+    clearRpt();
+    toast('Memo saved to Google Sheets','success');
+  } catch(e) { showAl(al,'al-e','Save failed: '+e.message); toast('Save failed','error'); }
+  btn.disabled=false; btn.innerHTML='📋 Generate &amp; Save Memo';
+}
+
+function clearRpt() {
+  ['rp-typ','rp-sub','rp-mod'].forEach(id=>document.getElementById(id).value='');
+  ['rp-mc','rp-rec','rp-rpos','rp-apv','rp-apos','rp-attl','rp-newaddr'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('chk-addr').checked=false;
+  document.getElementById('addr-fields').classList.add('hidden');
+  document.getElementById('rp-sub').innerHTML='<option value="">-- Subject --</option>';
+  document.getElementById('rpt-al').classList.add('hidden');
+  SEL=[]; renderPenList(); updateSelPanel(); fillAddrDD();
+}
+
+function rtab(t,el) {
+  document.getElementById('rt-new').classList.toggle('hidden',t!=='new');
+  document.getElementById('rt-list').classList.toggle('hidden',t!=='list');
+  document.querySelectorAll('#p-memos .tabs .tab').forEach(x=>x.classList.remove('on'));
+  el.classList.add('on');
+  if (t==='list') loadMemos(false);
+}
+
+async function loadMemos(showMsg) {
+  if (showMsg) toast('Loading memos...','info',0);
+  try {
+    const d = await api({ action:'getMemos' });
+    MEMOS = d.memos||[];
+    renderMemos();
+    if (showMsg) toast('Loaded '+MEMOS.length+' memos','success');
+  } catch(e) {
+    toast('Failed to load memos: '+e.message,'error');
+    showAl(document.getElementById('ml-al'),'al-e','Load failed: '+e.message);
+  }
+}
+
+function renderMemos() {
+  const q=(gv('ml-q')||'').toLowerCase(), ft=gv('ml-ft'), fm=gv('ml-fm');
+  const f=[...MEMOS].reverse().filter(r=>
+    (!q||r.mc.toLowerCase().includes(q)||(r.pnames||'').toLowerCase().includes(q))&&
+    (!ft||r.typ===ft)&&(!fm||r.mod===fm));
+  document.getElementById('ml-cnt').textContent = f.length+' memos';
+  const tb = document.getElementById('ml-tb');
+  if (!f.length) { tb.innerHTML='<tr><td colspan="7" style="text-align:center;padding:22px;color:var(--mut)">No memos found</td></tr>'; return; }
+  tb.innerHTML = f.map(r=>`<tr>
+    <td style="font-weight:700;font-size:11px;color:var(--ac2)">${esc(r.mc)}</td>
+    <td><span class="badge ${r.typ==='LIF'?'bo2':'bp2'}">${r.typ}</span></td>
+    <td><span class="badge bt">${esc(r.mod)}</span></td>
+    <td style="text-align:center"><span class="chip">${(r.selCls||[]).length}</span></td>
+    <td style="font-size:11px">${(r.dstr||'').split(' ').slice(0,3).join(' ')}</td>
+    <td style="font-size:11px;color:var(--mut)">${esc(r.by||'')}</td>
+    <td>
+      <button class="bs bsm" onclick="showMemoModal(MEMOS.find(x=>x.id==${r.id})||getMemoRef(${r.id}))">View</button>
+      <button class="bg bsm" style="margin-left:3px" onclick="expPDFfor(MEMOS.find(x=>x.id==${r.id})||getMemoRef(${r.id}))">PDF</button>
+    </td>
+  </tr>`).join('');
+}
+function getMemoRef(id) { return MEMOS.find(x=>x.id===id)||MEMOS.find(x=>String(x.id)===String(id)); }
+function filterMemos() { renderMemos(); }
+
+/* ============================================================
+   SEARCH
+   ============================================================ */
+async function doSearch() {
+  const q = gv('sq').toLowerCase();
+  const res = document.getElementById('s-res');
+  const btn = document.getElementById('s-btn');
+  if (!q) { res.innerHTML='<p style="color:var(--mut)">Enter a search term.</p>'; return; }
+  btn.disabled=true; btn.innerHTML='<span class="spin spin-d"></span>Searching...';
+  try {
+    const d = await api({ action:'search', q });
+    const fr=d.memos||[], fp=d.pensioners||[];
+    MEMOS=[...MEMOS,...fr.filter(r=>!MEMOS.find(x=>x.id===r.id))];
+    PENS=[...PENS,...fp.filter(p=>!PENS.find(x=>x.cl===p.cl))];
+    let html='';
+    if (fr.length) {
+      html+=`<p style="font-size:11px;font-weight:700;color:var(--mut);margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px">Memos (${fr.length})</p>`;
+      html+=fr.map(r=>`<div class="card" style="padding:14px;margin-bottom:10px;display:flex;align-items:flex-start;gap:14px">
+        <div style="flex:1;min-width:0">
+          <span class="badge ${r.typ==='LIF'?'bo2':'bp2'}" style="margin-bottom:5px">${r.typ==='LIF'?'Lifting':'Resumption'}</span>
+          <p style="font-weight:800;font-size:13px;color:var(--ac2)">${esc(r.mc)}</p>
+          <p style="font-size:12px;margin-top:3px;color:var(--txt)">${esc(r.pnames||'')}</p>
+          <p style="font-size:11px;color:var(--mut)">${esc(r.sub||'')} · Mode: ${esc(r.mod)} · ${esc(r.dstr||'')}</p>
+        </div>
+        <div style="display:flex;gap:5px;flex-shrink:0">
+          <button class="bs bsm" onclick="showMemoModal(getMemoRef(${r.id})||${safeJSON(r)})">View</button>
+          <button class="bg bsm" onclick="expPDFfor(getMemoRef(${r.id})||${safeJSON(r)})">PDF</button>
+        </div>
+      </div>`).join('');
+    }
+    if (fp.length) {
+      html+=`<p style="font-size:11px;font-weight:700;color:var(--mut);margin:14px 0 8px;text-transform:uppercase;letter-spacing:.5px">Pensioners (${fp.length})</p>`;
+      html+=fp.map(p=>`<div class="card" style="padding:14px;margin-bottom:8px;display:flex;align-items:center;gap:12px">
+        <div style="flex:1;min-width:0">
+          <span class="badge bb">${esc(p.cl)}</span>
+          <p style="font-weight:700;font-size:13px;margin-top:5px">${esc(p.ln)}, ${esc(p.fn)} ${esc(p.mi||'')}</p>
+          <p style="font-size:11px;color:var(--mut)">${esc(p.cn||'')} · Encoded by ${esc(p.by||'')}</p>
+        </div>
+        <button class="bs bsm" onclick="viewP('${esc2(p.cl)}')">View</button>
+      </div>`).join('');
+    }
+    if (!fr.length&&!fp.length) html='<div class="card" style="padding:20px;text-align:center;color:var(--mut)">No results found for "'+esc(q)+'"</div>';
+    res.innerHTML=html;
+  } catch(e) { res.innerHTML=`<div class="card" style="padding:18px;color:var(--red)">Search failed: ${esc(e.message)}</div>`; }
+  btn.disabled=false; btn.innerHTML='Search';
+}
+
+/* ============================================================
+   USER MANAGEMENT
+   ============================================================ */
+async function loadUsers() {
+  const tb = document.getElementById('usr-tb');
+  tb.innerHTML='<tr><td colspan="6" style="text-align:center;padding:22px;color:var(--mut)"><span class="spin spin-d"></span> Loading...</td></tr>';
+  try {
+    const d = await api({ action:'getUsers' });
+    USERS = d.users||[];
+    renderUsers();
+  } catch(e) {
+    tb.innerHTML=`<tr><td colspan="6" style="text-align:center;padding:22px;color:var(--red)">Load failed: ${esc(e.message)}</td></tr>`;
+  }
+}
+
+function renderUsers() {
+  const tb = document.getElementById('usr-tb');
+  if (!USERS.length) { tb.innerHTML='<tr><td colspan="6" style="text-align:center;padding:20px;color:var(--mut)">No users</td></tr>'; return; }
+  tb.innerHTML = USERS.map(u=>`<tr>
+    <td style="font-weight:600">${esc(u.username)}</td>
+    <td>${esc(u.fname)} ${esc(u.lname)}</td>
+    <td><span class="badge ${u.role==='admin'?'bb':u.role==='encoder'?'bgg':'bt'}">${esc(u.role)}</span></td>
+    <td style="color:var(--mut)">${esc(u.pos||'—')}</td>
+    <td><span class="badge ${u.status==='active'?'bgg':u.status==='pending'?'by2':'br2'}">${esc(u.status||'active')}</span></td>
+    <td style="white-space:nowrap">
+      ${u.status==='pending'?`<button class="bg bsm" onclick="approveUser('${esc2(u.username)}')">Approve</button> `:''}
+      ${u.role!=='admin'&&u.status==='active'?`<button class="bs bsm" onclick="changeRole('${esc2(u.username)}','${u.role==='encoder'?'viewer':'encoder'}')">→${u.role==='encoder'?'Viewer':'Encoder'}</button> `:''}
+      ${u.username!==CU.username?`<button class="br bsm" onclick="removeUser('${esc2(u.username)}')">Remove</button>`:'—'}
+    </td>
+  </tr>`).join('');
+}
+
+async function addUser() {
+  const fn=gv('nu-fn'),ln=gv('nu-ln'),u=gv('nu-u').toLowerCase(),p=gv('nu-p');
+  const pos=gv('nu-pos'), role=gv('nu-role')||'encoder';
+  const al=document.getElementById('au-al'), btn=document.getElementById('au-btn');
+  al.classList.add('hidden');
+  if (!fn||!ln||!u||!p) { showAl(al,'al-e','Fill all required fields.'); return; }
+  if (p.length<6) { showAl(al,'al-e','Password must be at least 6 characters.'); return; }
+  if (!/^[a-z0-9_]+$/.test(u)) { showAl(al,'al-e','Username: letters, numbers, underscore only.'); return; }
+  btn.disabled=true; btn.innerHTML='<span class="spin spin-d"></span>Adding...';
+  try {
+    const d = await api({ action:'registerUser', fname:fn, lname:ln, username:u, password:p, pos:pos||'Encoder/Evaluator', role, status:'active' });
+    if (!d.ok) throw new Error(d.msg||'Failed.');
+    showAl(al,'al-s','✓ User added successfully!');
+    ['nu-fn','nu-ln','nu-u','nu-p','nu-pos'].forEach(id=>document.getElementById(id).value='');
+    loadUsers();
+    toast('User '+u+' added','success');
+  } catch(e) { showAl(al,'al-e','Failed: '+e.message); }
+  btn.disabled=false; btn.innerHTML='Add User';
+}
+
+async function approveUser(username) {
+  const al=document.getElementById('usr-al');
+  try {
+    const d=await api({action:'updateUser',username,status:'active'});
+    if(!d.ok) throw new Error(d.msg);
+    showAl(al,'al-s','User '+username+' approved.');
+    toast(username+' approved','success');
+    loadUsers();
+  } catch(e) { showAl(al,'al-e','Failed: '+e.message); }
+}
+
+async function changeRole(username, newRole) {
+  try {
+    const d=await api({action:'updateUser',username,role:newRole});
+    if(!d.ok) throw new Error(d.msg);
+    toast(username+' role changed to '+newRole,'success');
+    loadUsers();
+  } catch(e) { toast('Failed: '+e.message,'error'); }
+}
+
+async function removeUser(username) {
+  if(!confirm('Remove user "'+username+'"? They will no longer be able to log in.')) return;
+  const al=document.getElementById('usr-al');
+  try {
+    const d=await api({action:'removeUser',username});
+    if(!d.ok) throw new Error(d.msg);
+    showAl(al,'al-s','User '+username+' removed.');
+    toast(username+' removed','info');
+    loadUsers();
+  } catch(e) { showAl(al,'al-e','Failed: '+e.message); }
+}
+
+/* ============================================================
+   MEMO HTML — PAGINATED 5 PER PAGE, CONTINUOUS NUMBERING
+   ============================================================ */
+function buildBody(r) {
+  const w=r.typ==='LIF'?'LIFTING':'RESUMPTION';
+  const k=r.typ==='LIF'?'blocked':'terminated/blocked';
+  return `As part of the Agency's continued validation program, submitted herewith the names of pensioners recommended for ${w} of ${k} pension claims, the disbursement of any unclaimed pension and the update of the pensioner's address, if necessary. The pensioners personally appeared in Field Service Office with their previously issued PVAO IDs or respective captured biometrics information.`;
+}
+
+/* Build one memo page HTML */
+function buildPage(r, pens, pageNum, totalPages, startIdx, body, isFirst, isLast) {
+  const forLine = r.typ==='LIF'?': THE DEPUTY ADMINISTRATOR FOR OPERATIONS':': THE DEPUTY ADMINISTRATOR';
+  const da = r.typ==='LIF'?'DA, Ops':'DA';
+  const hdr = '<div class="memo-hspace"><span>[ LETTERHEAD / AGENCY HEADER ]</span></div>';
+  const ftr = '<div class="memo-fspace"><span>[ AGENCY FOOTER ]</span></div>';
+  const pensRows = pens.map((p,i)=>{
+    const num = startIdx + i + 1;
+    const addrNote = r.addrChange && r.addrPenCl===p.cl && r.newAddr
+      ? `<br><small style="margin-left:20px;color:#555">New address: ${esc(r.newAddr)}</small>` : '';
+    return `<tr>
+      <td>${num}.&nbsp;&nbsp;${esc(p.ln)}, ${esc(p.fn)}${p.mi?' '+esc(p.mi):''}
+        <br><span style="margin-left:20px">${esc(p.cn||'')}</span>${addrNote}
+      </td>
+      <td>${esc(p.cl)}</td>
+    </tr>`;
+  }).join('');
+
+  let headerBlock = '', footerBlock = '';
+  if (isFirst) {
+    headerBlock = `
+      ${hdr}
+      <div class="memo-body">
+        <div style="text-align:right;margin-bottom:12px;font-size:13px">${esc(r.dstr)}</div>
+        <div style="font-weight:bold;font-size:13px;margin-bottom:12px">${esc(r.mc)}</div>
+        <table style="width:100%;border-collapse:collapse;font-size:13px;margin-bottom:8px">
+          <tr><td style="width:110px;font-weight:bold;padding:2px 0;vertical-align:top">FOR</td><td style="width:14px;font-weight:bold;padding:2px 0">:</td><td style="padding:2px 0">${forLine}</td></tr>
+          <tr><td style="font-weight:bold;padding:2px 0">ATTENTION</td><td style="font-weight:bold;padding:2px 0">:</td><td style="padding:2px 0">CHIEF, FINANCE DIVISION</td></tr>
+          <tr><td style="padding:2px 0"></td><td style="font-weight:bold;padding:2px 0">:</td><td style="padding:2px 0">CHIEF, MANAGEMENT INFORMATION DIVISION</td></tr>
+          <tr><td style="font-weight:bold;padding:2px 0;vertical-align:top">SUBJECT</td><td style="font-weight:bold;padding:2px 0">:</td><td style="font-weight:bold;padding:2px 0">${esc(r.sub)}</td></tr>
+        </table>
+        <hr style="border:none;border-top:1.5px solid #000;margin:8px 0 12px"/>
+        <p style="text-align:justify;text-indent:30px;margin-bottom:12px"><strong>1.</strong>&nbsp;&nbsp;&nbsp;${body}</p>`;
+  } else {
+    headerBlock = `
+      ${hdr}
+      <div class="memo-body">
+        <div style="text-align:right;margin-bottom:8px;font-size:12px;color:#555">${esc(r.mc)} — Page ${pageNum} of ${totalPages}</div>`;
+  }
+
+  const tableBlock = `
+    <table class="memo-tbl">
+      <tr><th style="width:65%">NAME OF PENSIONER</th><th style="width:35%">CLAIM NUMBER</th></tr>
+      ${pensRows}
+    </table>`;
+
+  let sigBlock = '';
+  if (isLast) {
+    sigBlock = `
+      <p style="text-indent:30px;margin:12px 0 20px"><strong>2.</strong>&nbsp;&nbsp;For ${da}, approval.</p>
+      <div style="display:flex;justify-content:space-between;margin-top:10px">
+        <div>
+          <p style="font-size:12px;margin-bottom:2px">PREPARED BY:</p>
+          <div class="sig-line" style="width:200px">${esc(r.prep)}</div>
+          <p class="sig-sub">${esc(r.preppos)}</p>
+        </div>
+        <div>
+          <p style="font-size:12px;margin-bottom:2px">RECOMMEND APPROVAL:</p>
+          <div class="sig-line" style="width:210px">${esc(r.rec)}</div>
+          <p class="sig-sub">${esc(r.recpos)}</p>
+        </div>
+      </div>
+      <div style="margin-top:24px;text-align:center">
+        <p style="font-size:12px;margin-bottom:2px">APPROVED/DISAPPROVED:</p>
+        <div class="sig-line" style="display:inline-block;width:270px">${r.apvttl?esc(r.apvttl)+'. ':''}${esc(r.apv)}</div>
+        <p class="sig-sub">${esc(r.apvpos)}</p>
+      </div>`;
+  }
+
+  return `<div class="memo-wrap" style="margin-bottom:${isLast?'0':'16px'}">
+    ${headerBlock}
+    ${tableBlock}
+    ${sigBlock}
+    </div>
+    ${ftr}
+  </div>`;
+}
+
+function buildMemoHTML(r) {
+  const body = r.editBody || buildBody(r);
+  const pens = r.pensioners || [];
+  const totalPages = Math.ceil(pens.length / CLAIMS_PER_PAGE) || 1;
+  let html = '';
+  for (let pg=0; pg<totalPages; pg++) {
+    const start = pg * CLAIMS_PER_PAGE;
+    const chunk = pens.slice(start, start + CLAIMS_PER_PAGE);
+    html += buildPage(r, chunk, pg+1, totalPages, start, body, pg===0, pg===totalPages-1);
+  }
+  return `<div id="memo-printable">${html}</div>`;
+}
+
+function showMemoModal(r) {
+  if(!r) { toast('Memo not found','error'); return; }
+  CR = r;
+  document.getElementById('m-mt').textContent = r.mc + (r.pensioners?.length > CLAIMS_PER_PAGE ? ` (${Math.ceil(r.pensioners.length/CLAIMS_PER_PAGE)} pages)` : '');
+  document.getElementById('m-prev').innerHTML = buildMemoHTML(r);
+  document.getElementById('m-ew').classList.add('hidden');
+  document.getElementById('m-eb').value = r.editBody || buildBody(r);
+  om('m-memo');
+}
+
+function toggleEdit() {
+  const w=document.getElementById('m-ew'); w.classList.toggle('hidden');
+  if(!w.classList.contains('hidden')) document.getElementById('m-eb').value=CR.editBody||buildBody(CR);
+}
+function applyEdit() {
+  if(!CR) return; CR.editBody=gv('m-eb');
+  const idx=MEMOS.findIndex(x=>x.id===CR.id); if(idx>=0) MEMOS[idx].editBody=CR.editBody;
+  document.getElementById('m-prev').innerHTML=buildMemoHTML(CR);
+  document.getElementById('m-ew').classList.add('hidden');
+}
+
+function printMemo() {
+  const c = document.getElementById('memo-printable');
+  const w = window.open('','_blank');
+  w.document.write(`<html><head><title>${CR?.mc||'Memo'}</title>
+  <style>
+  *{box-sizing:border-box}
+  body{font-family:'Times New Roman',serif;font-size:13px;margin:0;padding:0;color:#000}
+  .memo-wrap{page-break-after:always;margin:0}
+  .memo-wrap:last-child{page-break-after:auto}
+  table{border-collapse:collapse;width:100%}
+  .memo-tbl th,.memo-tbl td{border:1px solid #000;padding:5px 8px}
+  .memo-tbl th{background:#f0f0f0;text-align:center;font-weight:bold}
+  .sig-line{border-top:1px solid #000;padding-top:3px;font-weight:bold;font-size:11px;text-transform:uppercase;margin-top:28px}
+  .sig-sub{font-size:10px;font-style:italic}
+  .memo-hspace{height:80px;border-bottom:1px dashed #ccc;display:flex;align-items:center;justify-content:center}
+  .memo-fspace{height:55px;border-top:1px dashed #ccc;display:flex;align-items:center;justify-content:center}
+  .memo-hspace span,.memo-fspace span{font-size:10px;color:#ccc;font-family:sans-serif}
+  .memo-body{padding:14px 32px}
+  @media print{.memo-wrap{page-break-after:always}.memo-wrap:last-child{page-break-after:auto}}
+  </style></head><body>${c.innerHTML}</body></html>`);
+  w.document.close(); w.focus(); setTimeout(()=>w.print(),500);
+}
+
+/* ============================================================
+   PDF EXPORT — paginated
+   ============================================================ */
+function expPDF() { if(CR) expPDFfor(CR); }
+function expPDFfor(r) {
+  if(!window.jspdf) { toast('PDF library loading, please wait and try again','warn'); return; }
+  if(!r) { toast('Memo data not found','error'); return; }
+  const {jsPDF} = window.jspdf;
+  const doc = new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+  const W=170, mx=20;
+  const pens = r.pensioners||[];
+  const totalPages = Math.ceil(pens.length/CLAIMS_PER_PAGE)||1;
+  const body = r.editBody||buildBody(r);
+  const da = r.typ==='LIF'?'DA, Ops':'DA';
+  const fl = r.typ==='LIF'?': THE DEPUTY ADMINISTRATOR FOR OPERATIONS':': THE DEPUTY ADMINISTRATOR';
+
+  for (let pg=0; pg<totalPages; pg++) {
+    if (pg>0) doc.addPage();
+    let y=14;
+    doc.setFontSize(8);doc.setFont('helvetica','normal');doc.setDrawColor(170);doc.setDash([2,2]);
+    doc.rect(mx,y,W,18);doc.text('[ LETTERHEAD / AGENCY HEADER ]',105,y+10,{align:'center'});
+    doc.setDash([]);y+=24;
+
+    if (pg===0) {
+      doc.setFontSize(10);doc.setFont('helvetica','normal');doc.text(r.dstr,mx+W,y,{align:'right'});y+=7;
+      doc.setFont('helvetica','bold');doc.text(r.mc,mx,y);y+=8;
+      doc.setFont('helvetica','normal');doc.setFontSize(9);
+      [['FOR',fl],['ATTENTION',': CHIEF, FINANCE DIVISION'],['','  : CHIEF, MANAGEMENT INFORMATION DIVISION'],['SUBJECT',': '+r.sub]].forEach(([k,val])=>{
+        if(k){doc.setFont('helvetica','bold');doc.text(k,mx,y);}
+        doc.setFont('helvetica',k==='SUBJECT'?'bold':'normal');
+        const ls=doc.splitTextToSize(val,W-34);doc.text(ls,mx+34,y);y+=ls.length*5+1;
+      });
+      y+=2;doc.setDrawColor(0);doc.setLineWidth(.5);doc.line(mx,y,mx+W,y);y+=7;
+      const bls=doc.splitTextToSize('1.   '+body,W-4);
+      doc.setFont('helvetica','normal');doc.setFontSize(9);
+      bls.forEach(l=>{doc.text(l,mx+3,y);y+=5;});y+=3;
+    } else {
+      doc.setFontSize(9);doc.setFont('helvetica','normal');doc.setTextColor(120);
+      doc.text(r.mc+' — Page '+(pg+1)+' of '+totalPages,mx+W,y+6,{align:'right'});
+      doc.setTextColor(0);y+=12;
+    }
+
+    const chunk=pens.slice(pg*CLAIMS_PER_PAGE,(pg+1)*CLAIMS_PER_PAGE);
+    const cW=[W*.62,W*.38];
+    doc.setFont('helvetica','bold');doc.setFontSize(8.5);
+    doc.rect(mx,y,cW[0],7);doc.text('NAME OF PENSIONER',mx+cW[0]/2,y+4.5,{align:'center'});
+    doc.rect(mx+cW[0],y,cW[1],7);doc.text('CLAIM NUMBER',mx+cW[0]+cW[1]/2,y+4.5,{align:'center'});
+    y+=7;
+    chunk.forEach((p,i)=>{
+      const num=pg*CLAIMS_PER_PAGE+i+1;
+      const note=r.addrChange&&r.addrPenCl===p.cl&&r.newAddr?'\n    New address: '+r.newAddr:'';
+      const nl=doc.splitTextToSize(`${num}.  ${p.ln}, ${p.fn}${p.mi?' '+p.mi:''}\n    ${p.cn||''}${note}`,cW[0]-4);
+      const rH=Math.max(10,nl.length*5);
+      doc.setFont('helvetica','normal');
+      doc.rect(mx,y,cW[0],rH);doc.text(nl,mx+3,y+4.5);
+      doc.rect(mx+cW[0],y,cW[1],rH);doc.text(p.cl,mx+cW[0]+4,y+4.5);
+      y+=rH;
+    });
+
+    if (pg===totalPages-1) {
+      y+=5;doc.setFontSize(9);doc.text('   2.  For '+da+', approval.',mx,y);y+=12;
+      if(y>230){doc.addPage();y=20;}
+      doc.setFontSize(8);
+      doc.text('PREPARED BY:',mx,y);doc.text('RECOMMEND APPROVAL:',mx+W*.55,y);y+=16;
+      doc.line(mx,y,mx+65,y);doc.setFont('helvetica','bold');doc.text(r.prep,mx,y+4);doc.setFont('helvetica','italic');doc.text(r.preppos,mx,y+8);
+      doc.setFont('helvetica','bold');doc.line(mx+W*.55,y,mx+W,y);doc.text(r.rec,mx+W*.55,y+4);doc.setFont('helvetica','italic');doc.text(r.recpos,mx+W*.55,y+8);
+      y+=20;doc.setFont('helvetica','normal');doc.setFontSize(9);doc.text('APPROVED/DISAPPROVED:',105,y,{align:'center'});y+=18;
+      const an=(r.apvttl?r.apvttl+'. ':'')+r.apv;
+      doc.line(55,y,155,y);doc.setFont('helvetica','bold');doc.setFontSize(8);doc.text(an,105,y+4,{align:'center'});
+      doc.setFont('helvetica','italic');doc.text(r.apvpos,105,y+9,{align:'center'});y+=14;
+    }
+
+    doc.setDrawColor(170);doc.setDash([2,2]);
+    const fy=Math.min(y+8,280);
+    doc.rect(mx,fy,W,12);doc.setFont('helvetica','normal');doc.setFontSize(7);doc.setTextColor(150);
+    doc.text('[ AGENCY FOOTER ]',105,fy+7,{align:'center'});
+    doc.setTextColor(0);doc.setDash([]);
+  }
+  doc.save(r.mc+'.pdf');
+}
+
+/* ============================================================
+   SETUP / DEPLOY GUIDE
+   ============================================================ */
+const AS_CODE = `const SS_ID = SpreadsheetApp.getActiveSpreadsheet().getId();
+
+function doPost(e) {
+  try {
+    const d = JSON.parse(e.postData.contents);
+    const ss = SpreadsheetApp.openById(SS_ID);
+    switch(d.action) {
+      case 'ping':           return out({ok:true,msg:'PVAO API ready'});
+      case 'login':          return login(ss,d);
+      case 'registerUser':   return registerUser(ss,d);
+      case 'getUsers':       return getUsers(ss);
+      case 'updateUser':     return updateUser(ss,d);
+      case 'removeUser':     return removeUser(ss,d);
+      case 'savePensioner':  return savePensioner(ss,d);
+      case 'getPensioners':  return getPensioners(ss);
+      case 'saveMemo':       return saveMemo(ss,d);
+      case 'getMemos':       return getMemos(ss);
+      case 'getDashboard':   return getDashboard(ss);
+      case 'search':         return doSearch(ss,d);
+      default:               return out({ok:false,error:'Unknown action'});
+    }
+  } catch(err) { return out({ok:false,error:err.message}); }
+}
+function doGet(e) { return out({ok:true,msg:'PVAO API ready'}); }
+function out(o) { return ContentService.createTextOutput(JSON.stringify(o)).setMimeType(ContentService.MimeType.JSON); }
+function getSheet(ss,name,hdrs){ let sh=ss.getSheetByName(name); if(!sh){sh=ss.insertSheet(name);if(hdrs)sh.appendRow(hdrs);} return sh; }
+function getRows(sh){ if(sh.getLastRow()<2)return[]; return sh.getDataRange().getValues().slice(1); }
+
+function login(ss,d){ const sh=getSheet(ss,'Users',UC); const rows=getRows(sh); const u=rows.find(r=>r[0]===d.username&&r[1]===d.password); if(!u)return out({ok:false,msg:'Invalid username or password.'}); if(u[6]==='pending')return out({ok:false,msg:'Account pending admin approval.'}); if(u[6]==='removed')return out({ok:false,msg:'Account removed.'}); return out({ok:true,user:{username:u[0],fname:u[2],lname:u[3],pos:u[4],role:u[5],status:u[6]}}); }
+function registerUser(ss,d){ const sh=getSheet(ss,'Users',UC); const rows=getRows(sh); if(rows.find(r=>r[0]===d.username))return out({ok:false,msg:'Username already taken.'}); sh.appendRow([d.username,d.password,d.fname,d.lname,d.pos||'Encoder/Evaluator',d.role||'encoder',d.status||'pending',new Date().toISOString()]); return out({ok:true,msg:'User registered.'}); }
+function getUsers(ss){ const sh=getSheet(ss,'Users',UC); return out({ok:true,users:getRows(sh).filter(u=>u[6]!=='removed').map(u=>({username:u[0],fname:u[2],lname:u[3],pos:u[4],role:u[5],status:u[6]}))}); }
+function updateUser(ss,d){ const sh=getSheet(ss,'Users',UC); const data=sh.getDataRange().getValues(); for(let i=1;i<data.length;i++){if(data[i][0]===d.username){if(d.status!==undefined)sh.getRange(i+1,7).setValue(d.status);if(d.role!==undefined)sh.getRange(i+1,6).setValue(d.role);return out({ok:true});}} return out({ok:false,msg:'User not found.'}); }
+function removeUser(ss,d){ return updateUser(ss,{username:d.username,status:'removed'}); }
+function savePensioner(ss,d){ const sh=getSheet(ss,'Pensioners',PC); const p=d.pensioner; const data=sh.getDataRange().getValues(); const idx=data.findIndex(r=>r[0]===p.cl); const row=[p.cl,p.ln,p.fn,p.mi||'',p.cn||'',p.ad||'',p.pa||'',p.em||'',p.by,p.at]; if(idx>0)sh.getRange(idx+1,1,1,row.length).setValues([row]); else sh.appendRow(row); return out({ok:true}); }
+function getPensioners(ss){ const sh=getSheet(ss,'Pensioners',PC); return out({ok:true,pensioners:getRows(sh).map(r=>({cl:r[0],ln:r[1],fn:r[2],mi:r[3],cn:r[4],ad:r[5],pa:r[6],em:r[7],by:r[8],at:r[9]}))}); }
+function saveMemo(ss,d){ const sh=getSheet(ss,'Memos',MC); const r=d.memo; const data=sh.getDataRange().getValues(); const idx=data.findIndex(row=>String(row[0])===String(r.id)); const row=[r.id,r.mc,r.typ,r.sub,r.mod,r.pnames||'',JSON.stringify(r.selCls||[]),JSON.stringify(r.pensioners||[]),r.prep||'',r.preppos||'',r.rec||'',r.recpos||'',r.apv||'',r.apvpos||'',r.apvttl||'',r.dstr||'',r.diso||'',r.by||'',r.addrChange?'YES':'NO',r.addrPenCl||'',r.newAddr||'',r.editBody||'']; if(idx>0)sh.getRange(idx+1,1,1,row.length).setValues([row]); else sh.appendRow(row); return out({ok:true}); }
+function getMemos(ss){ const sh=getSheet(ss,'Memos',MC); return out({ok:true,memos:parseMemos(sh)}); }
+function parseMemos(sh){ if(sh.getLastRow()<2)return[]; return sh.getDataRange().getValues().slice(1).map(r=>{let s=[],p=[]; try{s=JSON.parse(r[6]||'[]')}catch(e){} try{p=JSON.parse(r[7]||'[]')}catch(e){} return{id:r[0],mc:r[1],typ:r[2],sub:r[3],mod:r[4],pnames:r[5],selCls:s,pensioners:p,prep:r[8],preppos:r[9],rec:r[10],recpos:r[11],apv:r[12],apvpos:r[13],apvttl:r[14],dstr:r[15],diso:r[16],by:r[17],addrChange:r[18]==='YES',addrPenCl:r[19],newAddr:r[20],editBody:r[21]};}); }
+function getDashboard(ss){ const psh=getSheet(ss,'Pensioners',PC); const msh=getSheet(ss,'Memos',MC); const pr=psh.getLastRow()<2?[]:psh.getDataRange().getValues().slice(1); const mr=msh.getLastRow()<2?[]:msh.getDataRange().getValues().slice(1); return out({ok:true,penCount:pr.length,memoCount:mr.length,liftingCount:mr.filter(r=>r[2]==='LIF').length,resumptionCount:mr.filter(r=>r[2]==='RES').length,recentMemos:mr.slice(-6).reverse().map(r=>({id:r[0],mc:r[1],typ:r[2],sub:r[3],mod:r[4],pnames:r[5],dstr:r[15],by:r[17]}))}); }
+function doSearch(ss,d){ const q=(d.q||'').toLowerCase(); const psh=getSheet(ss,'Pensioners',PC); const msh=getSheet(ss,'Memos',MC); const pr=psh.getLastRow()<2?[]:psh.getDataRange().getValues().slice(1); const pensioners=pr.filter(r=>(r[0]+' '+r[1]+' '+r[2]+' '+r[4]).toLowerCase().includes(q)).map(r=>({cl:r[0],ln:r[1],fn:r[2],mi:r[3],cn:r[4],ad:r[5],pa:r[6],em:r[7],by:r[8]})); const memos=parseMemos(msh).filter(r=>(r.mc+' '+r.pnames+' '+r.sub).toLowerCase().includes(q)); return out({ok:true,pensioners,memos}); }
+const UC=['username','password','fname','lname','pos','role','status','createdAt'];
+const PC=['claim','lname','fname','mi','contact','address','present_address','email','encodedBy','encodedAt'];
+const MC=['id','mc','typ','sub','mod','pnames','selCls','pensioners','prep','preppos','rec','recpos','apv','apvpos','apvttl','dstr','diso','by','addrChange','addrPenCl','newAddr','editBody'];`;
+
+const GUIDE_DATA = [
+  {n:1,t:'Create a Google Sheet',b:`
+    <p>Go to <a href="https://sheets.google.com" target="_blank">sheets.google.com</a> and create a new spreadsheet.</p>
+    <p>Name it <code>PVAO Records</code>. No need to add any tabs — the script creates <code>Users</code>, <code>Pensioners</code>, and <code>Memos</code> automatically.</p>`
+  },
+  {n:2,t:'Open Apps Script and paste the code',b:`
+    <p>In the Google Sheet: click <strong>Extensions → Apps Script</strong>.</p>
+    <p>Delete all existing code, then paste the script below:</p>
+    <pre id="as-pre" style="max-height:200px;overflow-y:auto"></pre>
+    <button class="bs bsm" onclick="copyAS()" style="margin-top:6px">📋 Copy Script</button>`
+  },
+  {n:3,t:'Deploy as Web App',b:`
+    <ul>
+      <li>Click <strong>Deploy → New deployment</strong></li>
+      <li>Type: <strong>Web app</strong></li>
+      <li>Execute as: <strong>Me</strong></li>
+      <li>Who has access: <strong>Anyone</strong></li>
+      <li>Click <strong>Deploy</strong> and authorize all permissions</li>
+      <li>Copy the <strong>Web App URL</strong></li>
+    </ul>
+    <div class="ok">URL format: <code>https://script.google.com/macros/s/AKfycb.../exec</code><br>Paste this URL into the setup screen or via the "Change API URL" button on the login page.</div>`
+  },
+  {n:4,t:'Activate your first admin account',b:`
+    <p>After connecting, register your account using the <strong>Register</strong> tab on the login screen.</p>
+    <p>Since it's the first account, activate it manually:</p>
+    <ul>
+      <li>Open your Google Sheet → <strong>Users</strong> tab</li>
+      <li>Find your row — change the <code>status</code> cell from <code>pending</code> to <code>active</code></li>
+      <li>Log in — you now have full admin access</li>
+    </ul>
+    <div class="note">After this one-time step, all future users can be approved from <strong>Users → Approve</strong> inside the system — no more sheet edits needed.</div>`
+  },
+  {n:5,t:'Multi-user simultaneous access',b:`
+    <p>Because all data lives in Google Sheets, multiple users work at the same time without conflicts:</p>
+    <ul>
+      <li>Share the <code>pvao-system.html</code> file or host it on <strong>Netlify Drop</strong> (drag &amp; drop) or <strong>GitHub Pages</strong></li>
+      <li>Each user opens the page, enters the same API URL once, then logs in with their own account</li>
+      <li>Saves and changes are visible to everyone after clicking any Refresh button</li>
+    </ul>
+    <div class="ok">Google Apps Script serializes concurrent writes automatically — no data corruption from simultaneous access.</div>`
+  },
+  {n:6,t:'Re-deploy after script changes',b:`
+    <p>Whenever you edit the Apps Script code:</p>
+    <ul>
+      <li>Click <strong>Deploy → Manage deployments</strong></li>
+      <li>Click the pencil ✏ icon on your active deployment</li>
+      <li>Change version to <strong>New version</strong> → click <strong>Deploy</strong></li>
+    </ul>
+    <div class="note">The Web App URL does not change after re-deploy.</div>`
+  }
+];
+
+function buildGuide(containerId) {
+  const c = document.getElementById(containerId);
+  if (!c) return;
+  c.innerHTML = GUIDE_DATA.map(s=>`
+    <div class="scard">
+      <div class="shdr" onclick="togS('${containerId}_${s.n}')">
+        <div class="snum">${s.n}</div>
+        <h4>${s.t}</h4>
+        <span class="chev" id="chev_${containerId}_${s.n}">▾</span>
+      </div>
+      <div class="sbody hidden" id="sb_${containerId}_${s.n}">${s.b}</div>
+    </div>`).join('');
+  togS(containerId+'_1');
+  // Fill code blocks
+  ['as-pre'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.textContent=AS_CODE;
+  });
+}
+
+function togS(id) {
+  const b=document.getElementById('sb_'+id), c=document.getElementById('chev_'+id);
+  if(!b)return;
+  const open=!b.classList.contains('hidden');
+  b.classList.toggle('hidden',open);
+  if(c) c.textContent=open?'▾':'▴';
+  // fill code if just opened
+  if(!open) {
+    ['as-pre'].forEach(pid=>{
+      const el=document.getElementById(pid);
+      if(el&&!el.textContent) el.textContent=AS_CODE;
+    });
+  }
+}
+
+function copyAS() {
+  navigator.clipboard.writeText(AS_CODE)
+    .then(()=>toast('Script copied to clipboard!','success'))
+    .catch(()=>{ toast('Auto-copy failed','warn'); alert('Please manually select and copy the code.'); });
+}
+
+/* ============================================================
+   UTILS
+   ============================================================ */
+function om(id) { document.getElementById(id).classList.remove('hidden'); }
+function cm(id) { document.getElementById(id).classList.add('hidden'); }
+document.querySelectorAll('.mo').forEach(m=>m.addEventListener('click',function(e){if(e.target===this)cm(this.id);}));
+function gv(id) { const el=document.getElementById(id); return el?el.value.trim():''; }
+function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function esc2(s){ return String(s||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'"); }
+function safeJSON(o){ return JSON.stringify(o).replace(/</g,'\\u003c').replace(/>/g,'\\u003e').replace(/&/g,'\\u0026'); }
+function fd(lbl,val){ return `<div><label style="font-size:10px;font-weight:700;color:var(--mut);display:block;margin-bottom:2px;text-transform:uppercase;letter-spacing:.4px">${lbl}</label><p style="font-size:13px;font-weight:500">${val||'—'}</p></div>`; }
+function showAl(el,cls,html){ if(!el)return; el.className='al '+cls; el.innerHTML=html; el.classList.remove('hidden'); }
+
+/* INIT */
+if (!API_URL) { showSetup(); }
+</script>
+</body>
+</html>
