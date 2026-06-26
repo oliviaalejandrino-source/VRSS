@@ -1202,6 +1202,28 @@ async function removeUser(un){
 /* ============================================================
    MEMO HTML — letterhead + footer + paginated
    ============================================================ */
+function forLine(r){
+  // Derive the "FOR" addressee from the approving signatory's designation,
+  // rather than hardcoding it based on memo type.
+  let pos = (r.apvPos || '').trim();
+  if (!pos) return ': THE APPROVING OFFICER';
+  // Normalize leading "THE " so we don't double it up
+  pos = pos.replace(/^THE\s+/i, '');
+  return ': THE ' + pos.toUpperCase();
+}
+function daLabel(r){
+  // Short reference used in paragraph 2 ("For ___, approval."),
+  // built from the approving signatory's designation.
+  let pos = (r.apvPos || '').trim();
+  if (!pos) return 'approving officer\u2019s';
+  pos = pos.replace(/^THE\s+/i, '');
+  // Try to extract a short acronym-like form, e.g. "Deputy Administrator for Operations" -> "DA, Ops"
+  // Fall back to the full designation if no clean abbreviation is obvious.
+  const m = pos.match(/deputy administrator(?:\s+for\s+(\w+))?/i);
+  if (m) return m[1] ? ('DA, ' + m[1].slice(0,3).replace(/^(.)/, c=>c.toUpperCase())) : 'DA';
+  return pos;
+}
+
 function buildBody(r){
   const w=r.typ==='LIF'?'LIFTING':'RESUMPTION';
   const k=r.typ==='LIF'?'blocked':'terminated/blocked';
@@ -1235,8 +1257,8 @@ function ftHTML(){
 }
 
 function buildPage(r, chunk, pgNum, totalPgs, startIdx, body, isFirst, isLast){
-  const fl=r.typ==='LIF'?': THE DEPUTY ADMINISTRATOR FOR OPERATIONS':': THE DEPUTY ADMINISTRATOR';
-  const da=r.typ==='LIF'?'DA, Ops':'DA';
+  const fl=forLine(r);
+  const da=daLabel(r);
 
   const rows=chunk.map((p,i)=>{
     const num=startIdx+i+1;
@@ -1383,8 +1405,8 @@ function expPDFfor(r){
   const pens=r.pensioners||[];
   const totalPgs=Math.ceil(pens.length/CPP)||1;
   const body=r.editBody||buildBody(r);
-  const da=r.typ==='LIF'?'DA, Ops':'DA';
-  const fl=r.typ==='LIF'?': THE DEPUTY ADMINISTRATOR FOR OPERATIONS':': THE DEPUTY ADMINISTRATOR';
+  const da=daLabel(r);
+  const fl=forLine(r);
 
   for(let pg=0;pg<totalPgs;pg++){
     if(pg>0) doc.addPage();
