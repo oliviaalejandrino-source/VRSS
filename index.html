@@ -1224,10 +1224,10 @@ function forLine(r){
   // Derive the "FOR" addressee from the approving signatory's designation,
   // rather than hardcoding it based on memo type.
   let pos = (r.apvPos || '').trim();
-  if (!pos) return ': THE APPROVING OFFICER';
+  if (!pos) return ' THE APPROVING OFFICER';
   // Normalize leading "THE " so we don't double it up
   pos = pos.replace(/^THE\s+/i, '');
-  return ': THE ' + pos.toUpperCase();
+  return ' THE ' + pos.toUpperCase();
 }
 function daLabel(r){
   // Short reference used in paragraph 2 ("For ___, approval."),
