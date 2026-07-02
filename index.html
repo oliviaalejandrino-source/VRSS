@@ -1005,16 +1005,25 @@ function clearConn(){document.getElementById('conn-url').value='';localStorage.r
 /* ============================================================
    MEMO GENERATION
    ============================================================ */
-function genCtrl(){
+async function genCtrl(){
   const sub=gv('rp-sub'), m=gv('rp-mod');
   const t=typFromSub(sub);
   if(!t||!m||!CU){document.getElementById('rp-mc').value='';return;}
   const fi=CU.fname[0].toUpperCase(), li=CU.lname[0].toUpperCase();
+  const initials=fi+li;
   const now=new Date();
   const yy=String(now.getFullYear()).slice(-2);
-  const mm=String(now.getMonth()+1).padStart(2,'0');
-  const seq=MEMOS.filter(r=>r.typ===t&&r.mod===m).length+1;
-  document.getElementById('rp-mc').value=`${t}-${m}-${fi}${li}-${yy}${mm}-${String(seq).padStart(4,'0')}`;
+  const mm2=String(now.getMonth()+1).padStart(2,'0');
+  const prefix=`${t}-${m}-${initials}-${yy}${mm2}`;
+  // Ensure we have a fresh memo list so the counter is accurate
+  if(!MEMOS.length){
+    try{ const d=await api({action:'getMemos'}); MEMOS=d.memos||[]; }
+    catch(e){ /* fall through with empty, will be 001 */ }
+  }
+  // Count existing controls that match this exact prefix (same type, mode, initials, year-month)
+  const existing=MEMOS.filter(r=>(r.mc||'').startsWith(prefix)).length;
+  const seq=String(existing+1).padStart(3,'0');
+  document.getElementById('rp-mc').value=`${prefix}-${seq}`;
 }
 
 async function genReport(){
@@ -1029,7 +1038,10 @@ async function genReport(){
   if(isNaN(recIdx)||!SIGS[recIdx]){showAl(al,'al-e','Select Recommend Approval signatory.');return;}
   if(isNaN(apvIdx)||!SIGS[apvIdx]){showAl(al,'al-e','Select Approved/Disapproved signatory.');return;}
   btn.disabled=true; btn.innerHTML='<span class="spin spin-d"></span>Saving...';
+  // Recompute the memo control at save time to guarantee correct sequence
+  await genCtrl();
   const mc=gv('rp-mc');
+  if(!mc){showAl(al,'al-e','Could not generate memo control number. Select subject and mode first.');btn.disabled=false;btn.innerHTML='&#9635; Generate &amp; Save Memo';return;}
   const now=new Date();
   const dstr=fmtDate(now);
   const selPens=SEL.map(cl=>PENS.find(x=>x.cl===cl)).filter(Boolean);
@@ -1221,12 +1233,14 @@ function daLabel(r){
   // Short reference used in paragraph 2 ("For ___, approval."),
   // built from the approving signatory's designation.
   let pos = (r.apvPos || '').trim();
-  if (!pos) return 'approving officer\u2019s';
+  if (!pos) return 'the Approving Officer';
   pos = pos.replace(/^THE\s+/i, '');
-  // Try to extract a short acronym-like form, e.g. "Deputy Administrator for Operations" -> "DA, Ops"
-  // Fall back to the full designation if no clean abbreviation is obvious.
-  const m = pos.match(/deputy administrator(?:\s+for\s+(\w+))?/i);
-  if (m) return m[1] ? ('DA, ' + m[1].slice(0,3).replace(/^(.)/, c=>c.toUpperCase())) : 'DA';
+  // Deputy Administrator for Operations → "DA, OPs"
+  const mOps = pos.match(/deputy\s+administrator\s+for\s+operations/i);
+  if (mOps) return 'DA, OPs';
+  // Deputy Administrator (other / no qualifier) → "DA"
+  const mDA = pos.match(/deputy\s+administrator/i);
+  if (mDA) return 'DA';
   return pos;
 }
 
